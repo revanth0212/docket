@@ -1,0 +1,85 @@
+# Cortex Default Configuration
+# Works out of the box with zero setup — just start Ollama locally
+
+cortex:
+  version: "0.1.0"
+
+  server:
+    port: 3000
+    host: "127.0.0.1"
+
+  logging:
+    level: "info"  # debug | info | warn | error
+    format: "pretty"  # pretty | json
+
+  adapters:
+    llm:
+      default: "ollama"
+      providers:
+        ollama:
+          adapter: "@cortex/llm-ollama"
+          config:
+            baseUrl: "http://localhost:11434"
+            model: "llama3.2"
+            timeout: 30000
+            # For insight generation
+            systemPrompt: "You are a helpful assistant analyzing personal memories."
+        kimi:
+          adapter: "@cortex/llm-openai-compatible"
+          config:
+            baseUrl: "https://api.moonshot.cn/v1"
+            apiKey: "${CORTEX_KIMI_API_KEY:-}"
+            model: "kimi-k2"
+            timeout: 60000
+
+    embedder:
+      default: "ollama"
+      providers:
+        ollama:
+          adapter: "@cortex/embedder-ollama"
+          config:
+            baseUrl: "http://localhost:11434"
+            model: "nomic-embed-text"
+            dimensions: 768
+
+    store:
+      default: "sqlite"
+      providers:
+        sqlite:
+          adapter: "@cortex/store-sqlite"
+          config:
+            path: "./data/cortex.db"
+            enableWAL: true
+            busyTimeout: 5000
+        postgres:
+          adapter: "@cortex/store-postgres"
+          config:
+            connectionString: "${DATABASE_URL:-}"
+            poolSize: 10
+
+    blob:
+      default: "filesystem"
+      providers:
+        filesystem:
+          adapter: "@cortex/blob-filesystem"
+          config:
+            basePath: "./data/blobs"
+            maxFileSize: "100mb"
+        s3:
+          adapter: "@cortex/blob-s3"
+          config:
+            endpoint: "${S3_ENDPOINT:-}"
+            bucket: "${S3_BUCKET:-}"
+            accessKeyId: "${S3_ACCESS_KEY:-}"
+            secretAccessKey: "${S3_SECRET_KEY:-}"
+            region: "${S3_REGION:-}"
+
+    queue:
+      default: "in-memory"
+      providers:
+        in-memory:
+          adapter: "@cortex/queue-memory"
+          config:
+            maxConcurrent: 5
+            retryAttempts: 3
+            retryDelay: 1000

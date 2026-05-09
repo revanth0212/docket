@@ -1,0 +1,64 @@
+{
+  "name": "cortex",
+  "version": "0.1.0",
+  "description": "Open-source Second Brain Core — ingest, embed, query",
+  "main": "src/platform/standalone/index.js",
+  "bin": {
+    "cortex": "src/platform/standalone/bin.js"
+  },
+  "scripts": {
+    "start": "node src/platform/standalone/bin.js",
+    "dev": "nodemon src/platform/standalone/bin.js",
+    "test": "jest --coverage",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "test:e2e": "jest tests/e2e --runInBand",
+    "test:coverage": "jest --coverage --coverageReporters=text-summary",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "setup": "node src/scripts/setup.js",
+    "migrate": "node src/scripts/migrate.js",
+    "doctor": "node src/scripts/doctor.js",
+    "docs:dev": "cd docs && npm run dev",
+    "docs:build": "cd docs && npm run build",
+    "docs:check": "cd docs && npm run check"
+  },
+  "workspaces": [
+    "src/adapters/*/*",
+    "docs"
+  ],
+  "dependencies": {
+    "fastify": "^4.26.0",
+    "@fastify/multipart": "^8.0.0",
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^2.1.0",
+    "zod": "^3.22.0",
+    "js-yaml": "^4.1.0",
+    "pino": "^8.17.0",
+    "pino-pretty": "^10.3.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.0",
+    "eslint": "^8.56.0",
+    "nodemon": "^3.0.0",
+    "@types/node": "^20.11.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/cortex.git"
+  },
+  "keywords": [
+    "second-brain",
+    "knowledge-management",
+    "rag",
+    "llm",
+    "open-source",
+    "vector-search"
+  ]
+}
