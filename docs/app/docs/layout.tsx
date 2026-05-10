@@ -1,5 +1,5 @@
 import { source } from '@/lib/source';
-import { DocsLayout } from 'fumadocs-ui/layout';
+import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 
 export default function Layout({ children }) {
   return (
