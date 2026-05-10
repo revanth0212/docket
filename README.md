@@ -104,6 +104,31 @@ cortex:
 - 🛠️ [Developer Docs](https://cortex-docs.example.com/developers) — Architecture, adding adapters, contributing
 - 📚 [API Reference](https://cortex-docs.example.com/api) — OpenAPI spec
 
+## Local Development
+
+```bash
+# 1. Clone and install
+git clone https://github.com/yourusername/cortex.git
+cd cortex && npm install
+
+# 2. Start Ollama locally
+ollama pull llama3.2
+ollama pull nomic-embed-text
+ollama serve
+
+# 3. Start Cortex in dev mode
+npm run dev
+
+# 4. Run tests
+npm run test:unit
+ADAPTER=sqlite npm test -- tests/integration/adapter-contracts/store-contract.test.js
+
+# 5. Start the docs site
+npm run docs:dev
+```
+
+See the full [Local Development Guide](docs/content/docs/developers/local-development.mdx) for troubleshooting, adapter development workflow, and code quality scripts.
+
 ## Hosting Options
 
 | Method | Best For | Docs |

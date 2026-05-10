@@ -1,0 +1,169 @@
+---
+title: Local Development
+description: Set up your development environment and contribute to Cortex.
+---
+
+# Local Development
+
+This guide covers how to set up a local development environment for hacking on Cortex core or building adapters.
+
+## Prerequisites
+
+- **Node.js** >= 20.0.0
+- **npm** >= 10
+- **Ollama** (for running LLM and embedder contract tests locally)
+- **Git**
+
+## Clone and install
+
+```bash
+git clone https://github.com/yourusername/cortex.git
+cd cortex
+npm install
+```
+
+## Project structure
+
+```
+cortex/
+├── config/              # Default and example configs
+├── docs/                # Fumadocs documentation site
+├── src/
+│   ├── adapters/        # Adapter implementations
+│   │   ├── blob/
+│   │   ├── embedder/
+│   │   ├── llm/
+│   │   ├── queue/
+│   │   └── store/
+│   ├── core/            # Interfaces, config, utils
+│   ├── platform/        # Standalone server entrypoint
+│   └── scripts/         # CLI helpers (setup, migrate, doctor)
+├── tests/
+│   ├── unit/            # Unit tests
+│   └── integration/     # Adapter contract tests
+└── package.json
+```
+
+## Running the server
+
+### With Ollama (full stack)
+
+```bash
+# Terminal 1 — start Ollama
+ollama pull llama3.2
+ollama pull nomic-embed-text
+ollama serve
+
+# Terminal 2 — start Cortex
+npm run dev
+```
+
+The dev server runs on `http://localhost:3000` with nodemon auto-reload.
+
+### Without Ollama (core only)
+
+If you only want to test store/blob/queue adapters, you can skip Ollama. The server will fail to initialize the LLM/embedder adapters unless you configure mock providers.
+
+## Running tests
+
+### Unit tests
+
+```bash
+npm run test:unit
+```
+
+### Adapter contract tests
+
+Contract tests validate that every adapter satisfies its frozen interface.
+
+**SQLite store (no external deps):**
+```bash
+ADAPTER=sqlite npm test -- tests/integration/adapter-contracts/store-contract.test.js
+```
+
+**Filesystem blob (no external deps):**
+```bash
+ADAPTER=filesystem npm test -- tests/integration/adapter-contracts/blob-contract.test.js
+```
+
+**In-memory queue (no external deps):**
+```bash
+ADAPTER=in-memory npm test -- tests/integration/adapter-contracts/queue-contract.test.js
+```
+
+**Ollama LLM (requires Ollama running):**
+```bash
+ADAPTER=ollama npm test -- tests/integration/adapter-contracts/llm-contract.test.js
+```
+
+**Ollama embedder (requires Ollama running):**
+```bash
+ADAPTER=ollama npm test -- tests/integration/adapter-contracts/embedder-contract.test.js
+```
+
+### All tests
+
+```bash
+npm test
+```
+
+> Note: Ollama-dependent tests will fail if Ollama is not running. This is expected in CI or headless environments.
+
+## Running the docs site
+
+```bash
+npm run docs:dev
+```
+
+The docs site starts on `http://localhost:3001` (or the next available port).
+
+Build for production:
+```bash
+npm run docs:build
+```
+
+## Developing a new adapter
+
+1. Create a directory under `src/adapters/{category}/{name}/`
+2. Implement the frozen interface from `src/core/interfaces/`
+3. Add contract tests or run the existing ones against your adapter
+4. Update `config/defaults.yaml` with an example config block
+5. Add documentation under `docs/content/docs/developers/`
+
+Example:
+```bash
+mkdir -p src/adapters/llm/groq
+touch src/adapters/llm/groq/index.js
+```
+
+## Code quality
+
+```bash
+# Lint
+npm run lint
+
+# Lint and auto-fix
+npm run lint:fix
+```
+
+## Useful scripts
+
+```bash
+npm run setup      # Run first-time setup
+npm run migrate    # Run database migrations
+npm run doctor     # Check system health and dependencies
+```
+
+## Troubleshooting
+
+**`better-sqlite3` build failures**
+- Ensure you have a C++ compiler available (Xcode Command Line Tools on macOS, `build-essential` on Linux)
+- Delete `node_modules` and run `npm install` again
+
+**Ollama connection errors**
+- Verify Ollama is running: `curl http://localhost:11434/api/tags`
+- Check that the required models are pulled
+
+**Docs site 404s in development**
+- Make sure `output: 'export'` is not set in `next.config.js` during dev
+- The catch-all route requires `dynamicParams = true` in development
