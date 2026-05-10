@@ -1,0 +1,101 @@
+---
+title: Adding an LLM
+description: Implement LlmAdapter for a new provider.
+---
+
+# Adding an LLM
+
+Implement `LlmAdapter` to add support for a new LLM provider.
+
+## Interface
+
+```javascript
+class LlmAdapter {
+  async chat(messages, options = {}) {}
+  async health() {}
+  static get metadata() {}
+}
+```
+
+## Required methods
+
+### `chat(messages, options)`
+
+Send a chat completion request.
+
+**Parameters:**
+- `messages` — Array of `{ role, content }` where role is `system`, `user`, or `assistant`
+- `options` — `{ temperature?, maxTokens?, model?, stream? }`
+
+**Returns:** `{ content, usage: { prompt, completion, total }, finishReason?, model? }`
+
+### `health()`
+
+Default implementation sends a 1-token chat. Override if your provider
+has a dedicated health endpoint.
+
+## Implementation template
+
+```javascript
+const { LlmAdapter } = require('../../../core/interfaces/llm-adapter');
+
+class GroqLlmAdapter extends LlmAdapter {
+  constructor(config) {
+    super(config);
+    this.client = new Groq({ apiKey: config.apiKey });
+  }
+
+  async chat(messages, options = {}) {
+    const response = await this.client.chat.completions.create({
+      model: options.model || this.config.model,
+      messages,
+      temperature: options.temperature ?? 0.7,
+      max_tokens: options.maxTokens
+    });
+
+    return {
+      content: response.choices[0].message.content,
+      usage: {
+        prompt: response.usage.prompt_tokens,
+        completion: response.usage.completion_tokens,
+        total: response.usage.total_tokens
+      },
+      finishReason: response.choices[0].finish_reason,
+      model: response.model
+    };
+  }
+
+  static get metadata() {
+    return {
+      name: 'groq-llm',
+      version: '0.1.0',
+      capabilities: ['chat'],
+      cortexCompatibility: '>=0.1.0'
+    };
+  }
+}
+
+module.exports = { GroqLlmAdapter };
+```
+
+## Config example
+
+```yaml
+adapters:
+  llm:
+    default: "groq"
+    providers:
+      groq:
+        adapter: "@cortex/llm-groq"
+        config:
+          apiKey: "${GROQ_API_KEY}"
+          model: "llama3-70b-8192"
+```
+
+## Testing
+
+Run the LLM contract test against your adapter:
+
+```bash
+npm run test:integration:llm -- --provider=groq
+```

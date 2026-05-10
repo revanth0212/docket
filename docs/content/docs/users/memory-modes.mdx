@@ -1,0 +1,108 @@
+---
+title: Memory Modes
+description: Flat mode vs rich cognitive memory mode.
+---
+
+# Memory Modes
+
+Cortex works in two modes. You can switch at any time via config.
+
+## Flat mode (default)
+
+Simple memory records with embeddings. Just like any RAG system.
+
+- No sector classification
+- No decay
+- No temporal queries
+- No RBAC (open access)
+
+Best for: quick experiments, small deployments, when you don't need cognitive memory.
+
+## Rich mode
+
+Full cognitive memory with sectors, decay, temporal graph, and access control.
+
+### Sectors
+
+Memories are classified into one of five sectors on ingestion:
+
+| Sector | Description | Example |
+|--------|-------------|---------|
+| **Episodic** | Events and experiences | "I rode my bike to the lake" |
+| **Semantic** | Facts and knowledge | "Rust uses ownership instead of GC" |
+| **Procedural** | Skills and how-to | "How to bake sourdough bread" |
+| **Emotional** | Feelings and reactions | "I felt anxious before the talk" |
+| **Reflective** | Insights and realizations | "I realized I work best in mornings" |
+
+Classification is performed by the LLM. You can override per-ingest or
+disable entirely in config.
+
+### Decay
+
+Per-sector forgetting curves:
+
+```yaml
+memory:
+  decay:
+    functions:
+      episodic: { type: "exponential", halfLifeDays: 30 }
+      emotional: { type: "exponential", halfLifeDays: 7 }
+      semantic: { type: "none" }
+```
+
+- **Exponential** — `salience * 0.5^(elapsed / halfLife)`
+- **Linear** — `salience * (1 - elapsed / halfLife)`
+- **None** — never decays
+
+Memories drop below `forgottenThreshold` (default 0.05) are excluded from
+search but retained in storage.
+
+### Temporal graph
+
+Memories can have validity windows:
+
+```json
+{
+  "validFrom": "2026-01-01",
+  "validTo": "2026-03-01",
+  "supersedesId": "mem_older_version"
+}
+```
+
+Use temporal queries to ask "what was true on X date?"
+
+### RBAC
+
+Every memory has an access policy:
+
+```json
+{
+  "access": {
+    "owner": "user:alice",
+    "readers": ["user:bob", "group:family"],
+    "writers": ["user:alice"]
+  }
+}
+```
+
+Or reference a named policy:
+
+```json
+{
+  "access": {
+    "policy": "team"
+  }
+}
+```
+
+## Switching modes
+
+Edit `config/config.yaml`:
+
+```yaml
+memory:
+  mode: "rich"
+```
+
+Then restart Cortex. Existing flat memories remain accessible; new ingestions
+use rich semantics.

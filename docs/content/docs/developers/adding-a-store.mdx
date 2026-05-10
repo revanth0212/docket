@@ -1,0 +1,96 @@
+---
+title: Adding a Store
+description: Implement StoreAdapter for a new database or vector store.
+---
+
+# Adding a Store
+
+Implement `StoreAdapter` to add support for a new database.
+
+## Interface
+
+```javascript
+class StoreAdapter {
+  async initialize() {}
+  async createMemory(memory) {}
+  async getMemory(id) {}
+  async queryMemories(filters, options) {}
+  async vectorSearch(embedding, options) {}
+  async updateMemory(id, patch) {}
+  async deleteMemory(id) {}
+  async createRelation(relation) {}
+  async getMemoryGraph(memoryId, options) {}
+  async health() {}
+  async getMigrationVersion() {}
+  async runMigration(sql) {}
+  static get metadata() {}
+}
+```
+
+## Schema requirements
+
+Your store must support the Memory record shape:
+
+```javascript
+{
+  id: string,           // e.g., "mem_abc123"
+  rawRef: string,       // blob reference
+  contentType: string,  // MIME type
+  extractedText?: string,
+  summary?: string,
+  embedding?: number[],
+  metadata?: object,
+  parentId?: string,
+  sector?: string,      // rich mode
+  salience?: number,    // rich mode
+  validFrom?: Date,     // rich mode
+  validTo?: Date,       // rich mode
+  access?: object,      // rich mode: { owner, readers[], writers[], policy? }
+  createdAt: Date,
+  updatedAt?: Date
+}
+```
+
+## Vector search
+
+`vectorSearch(embedding, options)` must return results ranked by similarity:
+
+```javascript
+[
+  { memory: MemoryRecord, score: 0.94 },
+  { memory: MemoryRecord, score: 0.89 }
+]
+```
+
+Use your database's vector extension (pgvector, sqlite-vec, etc.) or
+implement cosine similarity in application code.
+
+## Relations and graph
+
+`createRelation` and `getMemoryGraph` power the knowledge graph:
+
+```javascript
+// createRelation
+{
+  sourceId: "mem_abc",
+  targetId: "mem_def",
+  type: "supersedes",
+  confidence: 0.95,
+  metadata: { reason: "updated belief" }
+}
+
+// getMemoryGraph returns related memories with path info
+```
+
+## Migrations
+
+Your adapter must manage its own schema. On `initialize()`, check
+`getMigrationVersion()` and run any pending migrations via `runMigration()`.
+
+## Testing
+
+Run the store contract test:
+
+```bash
+npm run test:integration:store -- --provider=qdrant
+```

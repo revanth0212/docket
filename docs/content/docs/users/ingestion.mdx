@@ -1,0 +1,79 @@
+---
+title: Ingestion
+description: How to get data into Cortex.
+---
+
+# Ingestion
+
+Cortex accepts files via multipart upload and processes them through a
+pipeline: validate, extract, classify (rich mode), embed, store.
+
+## Upload a file
+
+```bash
+curl -X POST http://localhost:3000/ingest \
+  -F "file=@document.pdf" \
+  -F "async=false" \
+  -H "X-Principal: user:alice"
+```
+
+## Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | File | Yes | The file to ingest |
+| `async` | boolean | No | `true` queues the job, `false` waits for completion |
+| `access` | string | No | Access policy: `owner-only`, `public`, or a named policy |
+| `metadata` | JSON | No | Arbitrary key-value metadata |
+
+## Supported content types
+
+- Images: `image/jpeg`, `image/png`, `image/webp`
+- Text: `text/plain`, `text/markdown`
+- Documents: `application/pdf`
+- Audio: `audio/mpeg`, `audio/wav` (requires Whisper adapter)
+- Video: `video/mp4` (extracts audio via Whisper)
+
+## Async ingestion
+
+For large files or batch uploads, use async mode:
+
+```bash
+curl -X POST http://localhost:3000/ingest \
+  -F "file=@video.mp4" \
+  -F "async=true"
+```
+
+Response:
+```json
+{
+  "jobId": "job_xyz789",
+  "status": "pending"
+}
+```
+
+Check status:
+```bash
+curl http://localhost:3000/jobs/job_xyz789
+```
+
+## What happens during ingestion
+
+1. **Validate** — Check MIME type, size limits, malware scan (future)
+2. **Store blob** — Save raw file to `BlobAdapter`
+3. **Extract text** — Run OCR, PDF text extraction, or Whisper transcription
+4. **Classify sector** (rich mode only) — LLM decides: episodic, semantic, procedural, emotional, reflective
+5. **Generate embedding** — Send extracted text to `EmbedderAdapter`
+6. **Generate summary** — LLM produces a short summary
+7. **Store memory** — Save record to `StoreAdapter` with metadata, access policy, and relations
+
+## Ingestion jobs
+
+The queue processes these job types:
+
+| Type | Description |
+|------|-------------|
+| `ingestion` | Full pipeline for a new file |
+| `extraction` | Re-run text extraction (e.g., after updating extractor) |
+| `summarization` | Re-generate summary with a new prompt |
+| `insight-generation` | Cross-memory pattern detection |

@@ -1,0 +1,73 @@
+---
+title: Adding a Queue Provider
+description: Implement QueueAdapter for a new job queue backend.
+---
+
+# Adding a Queue Provider
+
+Implement `QueueAdapter` to use a different job queue backend.
+
+## Interface
+
+```javascript
+class QueueAdapter {
+  async enqueue(type, payload, options) {}
+  async dequeue(type) {}
+  async complete(jobId, result) {}
+  async fail(jobId, error, shouldRetry) {}
+  async getJob(jobId) {}
+  async registerWorker(type, handler) {}
+  async start() {}
+  async stop() {}
+  async health() {}
+  static get metadata() {}
+}
+```
+
+## Job lifecycle
+
+```
+enqueue ──▶  pending
+              │
+              ▼
+dequeue ──▶  processing
+              │
+       ┌──────┴──────┐
+       ▼             ▼
+   complete      fail ──retry──▶ pending (if attempts < max)
+```
+
+## Worker registration
+
+Cortex registers workers by job type:
+
+```javascript
+await queue.registerWorker('ingestion', async (payload, job) => {
+  // Process ingestion
+  return { memoryId: 'mem_abc' };
+});
+```
+
+Your adapter must call the registered handler when a job of that type
+is dequeued.
+
+## In-memory vs external queues
+
+- **In-memory** (`InMemoryQueueAdapter`): Manages its own worker loop.
+  Call `start()` to begin processing, `stop()` to shut down gracefully.
+- **External** (BullMQ, SQS): Workers run in separate processes.
+  `start()`/`stop()` may be no-ops if the queue service manages polling.
+
+## Config example
+
+```yaml
+adapters:
+  queue:
+    default: "bullmq"
+    providers:
+      bullmq:
+        adapter: "@cortex/queue-bullmq"
+        config:
+          redisUrl: "${REDIS_URL}"
+          prefix: "cortex"
+```

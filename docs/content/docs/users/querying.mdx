@@ -1,0 +1,84 @@
+---
+title: Querying
+description: Retrieve memories using natural language and filters.
+---
+
+# Querying
+
+Cortex answers natural language questions by retrieving relevant memories
+and synthesizing a response.
+
+## Basic query
+
+```bash
+curl -X POST http://localhost:3000/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What photos did I take with bicycles?"}'
+```
+
+## Response format
+
+```json
+{
+  "answer": "You took photos of a red bicycle on May 3rd and a blue tandem on May 5th.",
+  "sources": [
+    { "id": "mem_abc123", "score": 0.94, "sector": "episodic" },
+    { "id": "mem_def456", "score": 0.89, "sector": "episodic" }
+  ],
+  "trace": [
+    "vector search returned 50 candidates",
+    "graph traversal pruned to 12",
+    "recency boost applied",
+    "salience filter removed 3 forgotten memories",
+    "temporal constraint matched 2 memories"
+  ]
+}
+```
+
+## Query options
+
+```json
+{
+  "question": "What did I learn about Rust?",
+  "filters": {
+    "sector": "semantic",
+    "contentType": "text/plain"
+  },
+  "temporal": {
+    "atDate": "2026-04-01"
+  },
+  "options": {
+    "topK": 10,
+    "threshold": 0.7
+  }
+}
+```
+
+## Filters
+
+| Filter | Description |
+|--------|-------------|
+| `sector` | Filter by memory sector |
+| `contentType` | Filter by original file type |
+| `dateFrom` / `dateTo` | Filter by ingestion date |
+| `metadata` | Key-value metadata match |
+
+## Temporal queries (rich mode)
+
+Ask what was true at a specific point in time:
+
+```json
+{
+  "question": "What was my workout routine in January?",
+  "temporal": {
+    "atDate": "2026-01-15"
+  }
+}
+```
+
+Cortex only returns memories whose `validFrom`/`validTo` window includes that date.
+
+## Explainability
+
+Every query response includes a `trace` array showing exactly which steps
+produced the result. This helps you debug retrieval and tune scoring weights.

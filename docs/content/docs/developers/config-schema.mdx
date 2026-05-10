@@ -1,0 +1,101 @@
+---
+title: Config Schema Reference
+description: Full reference for cortex.yaml configuration options.
+---
+
+# Config Schema Reference
+
+## Root structure
+
+```yaml
+cortex:
+  version: string
+  server: ServerConfig
+  logging: LoggingConfig
+  memory: MemoryConfig
+  adapters: AdaptersConfig
+```
+
+## ServerConfig
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `port` | number | 3000 | HTTP port |
+| `host` | string | "127.0.0.1" | Bind address |
+
+## LoggingConfig
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `level` | string | "info" | debug, info, warn, error |
+| `format` | string | "pretty" | pretty, json |
+
+## MemoryConfig
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `mode` | string | "flat" | flat, rich |
+| `sectors.enabled` | boolean | true | Classify on ingest |
+| `sectors.types` | string[] | 5 defaults | Valid sector names |
+| `sectors.default` | string | "semantic" | Fallback sector |
+| `decay.enabled` | boolean | true | Apply decay |
+| `decay.interval` | number | 3600000 | Background job interval (ms) |
+| `decay.functions.{sector}` | object | varies | Decay function config |
+| `decay.forgottenThreshold` | number | 0.05 | Min salience for search |
+| `temporal.enabled` | boolean | true | Validity windows |
+| `temporal.pointInTimeQueries` | boolean | true | Allow atDate queries |
+| `rbac.enabled` | boolean | true | Access control |
+| `rbac.authStrategy` | string | "header" | header, jwt, apiKey |
+| `rbac.principalHeader` | string | "X-Principal" | Header name |
+| `rbac.defaultPolicy` | string | "owner-only" | Default access |
+
+## AdapterProviderConfig
+
+Every adapter provider follows this shape:
+
+```yaml
+adapter: string   # Package name or relative path
+config: object    # Provider-specific settings
+```
+
+## AdaptersConfig
+
+```yaml
+llm:
+  default: string
+  providers:
+    {name}: AdapterProviderConfig
+
+embedder:
+  default: string
+  providers:
+    {name}: AdapterProviderConfig
+
+store:
+  default: string
+  providers:
+    {name}: AdapterProviderConfig
+
+blob:
+  default: string
+  providers:
+    {name}: AdapterProviderConfig
+
+queue:
+  default: string
+  providers:
+    {name}: AdapterProviderConfig
+```
+
+## Environment variable overrides
+
+Format: `CORTEX_{PATH}` where path uses underscores:
+
+```bash
+CORTEX_ADAPTERS_LLM_DEFAULT=openai
+CORTEX_MEMORY_MODE=rich
+CORTEX_MEMORY_DECAY_FUNCTIONS_EPISODIC_HALFLIFEDAYS=14
+```
+
+Values are auto-parsed: `true`/`false` → boolean, numbers → number,
+JSON arrays/objects → parsed JSON, everything else → string.

@@ -1,0 +1,81 @@
+---
+title: Adding a Blob Provider
+description: Implement BlobAdapter for a new storage backend.
+---
+
+# Adding a Blob Provider
+
+Implement `BlobAdapter` to store raw files on a new backend.
+
+## Interface
+
+```javascript
+class BlobAdapter {
+  async put(key, data, metadata) {}
+  async get(key) {}
+  async delete(key) {}
+  async exists(key) {}
+  async getUrl(key, expirySeconds) {}
+  async health() {}
+  static get metadata() {}
+}
+```
+
+## Key methods
+
+### `put(key, data, metadata)`
+
+Store a blob. `data` is a `Buffer` or `ReadableStream`.
+
+Returns: `{ key, url?, size }`
+
+### `get(key)`
+
+Retrieve a blob. Returns: `{ data: Buffer, metadata: object }`
+
+### `getUrl(key, expirySeconds)`
+
+Optional. Return a presigned URL for temporary access. Return `null` if
+not supported.
+
+## Implementation template
+
+```javascript
+const { BlobAdapter } = require('../../../core/interfaces/blob-adapter');
+
+class GcsBlobAdapter extends BlobAdapter {
+  constructor(config) {
+    super(config);
+    this.bucket = new Storage().bucket(config.bucket);
+  }
+
+  async put(key, data, metadata) {
+    const file = this.bucket.file(key);
+    await file.save(data, { metadata });
+    return { key, size: data.length };
+  }
+
+  async get(key) {
+    const file = this.bucket.file(key);
+    const [data] = await file.download();
+    const [metadata] = await file.getMetadata();
+    return { data, metadata };
+  }
+
+  // ... implement other methods
+}
+```
+
+## Config example
+
+```yaml
+adapters:
+  blob:
+    default: "gcs"
+    providers:
+      gcs:
+        adapter: "@cortex/blob-gcs"
+        config:
+          bucket: "my-cortex-blobs"
+          projectId: "${GCP_PROJECT_ID}"
+```

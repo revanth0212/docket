@@ -1,0 +1,84 @@
+---
+title: Quick Start
+description: Get Cortex running in 5 minutes.
+---
+
+# Quick Start
+
+Run your own second brain locally with zero setup beyond Ollama.
+
+## Prerequisites
+
+- Node.js 20+
+- Ollama installed locally
+
+## 1. Install Cortex
+
+```bash
+git clone https://github.com/yourusername/cortex.git
+cd cortex && npm install
+```
+
+## 2. Start Ollama
+
+```bash
+ollama pull llama3.2
+ollama pull nomic-embed-text
+ollama serve
+```
+
+## 3. Start Cortex
+
+```bash
+npm start
+```
+
+The server starts on `http://localhost:3000`.
+
+## 4. Ingest your first memory
+
+```bash
+curl -X POST http://localhost:3000/ingest \
+  -F "file=@photo.jpg" \
+  -F "async=false"
+```
+
+Response:
+```json
+{
+  "id": "mem_abc123",
+  "rawRef": "blobs/mem_abc123/raw.jpg",
+  "contentType": "image/jpeg",
+  "sector": "episodic",
+  "createdAt": "2026-05-09T12:00:00Z"
+}
+```
+
+## 5. Query your brain
+
+```bash
+curl -X POST http://localhost:3000/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What did I photograph last week?"}'
+```
+
+Response:
+```json
+{
+  "answer": "You photographed a bicycle on a trail.",
+  "sources": [
+    { "id": "mem_abc123", "score": 0.94 }
+  ],
+  "trace": [
+    "vector search returned 50 candidates",
+    "graph traversal pruned to 12",
+    "recency boost applied"
+  ]
+}
+```
+
+## Next steps
+
+- [Configure adapters](/docs/users/configuration)
+- [Learn about memory modes](/docs/users/memory-modes)
+- [Set up hosting](/docs/users/hosting)

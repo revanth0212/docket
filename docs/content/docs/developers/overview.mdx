@@ -1,0 +1,70 @@
+---
+title: Developer Overview
+description: Build plugins and adapters for Cortex without forking the project.
+---
+
+# Developer Overview
+
+Cortex is built around **adapter contracts**. You can extend it by
+implementing these contracts — no need to fork or modify core code.
+
+## What you can build
+
+- **LLM adapters** — Add support for new providers (Groq, Together, local models)
+- **Store adapters** — Add new databases (MySQL, MongoDB, Qdrant)
+- **Blob adapters** — Add new storage backends (Azure Blob, GCS)
+- **Queue adapters** — Add new job queues (BullMQ, SQS, RabbitMQ)
+- **Connectors** — Ingest from external sources (GitHub, Notion, email)
+
+## The contract model
+
+Core knows nothing about your adapter. It only knows the interface.
+
+```
+Your Adapter  ──implements──▶  Interface Contract  ◀──called by──  Cortex Core
+```
+
+This means:
+- Your adapter lives in its own package or directory
+- Core never imports from your adapter
+- You can swap adapters at runtime via config
+
+## Two types of extensions
+
+### 1. Adapters (infrastructure)
+
+Replace how Cortex talks to LLMs, databases, blob stores, or queues.
+
+Example: adding a new vector database.
+
+### 2. Connectors (data sources)
+
+Ingest data from external systems into Cortex.
+
+Example: a GitHub connector that ingests issues and PRs.
+
+Connectors are **not** adapter contracts. They are standalone packages that
+use Cortex's API (or direct adapter injection) to push data in.
+
+## Getting started
+
+1. Read the [Adapter Contracts](/docs/developers/adapter-contracts) page
+2. Pick the contract you want to implement
+3. Use the implementation template from `AGENTS.md`
+4. Write contract tests
+5. Submit a PR or publish as a separate package
+
+## Plugin packages
+
+Plugins can be published as npm packages with the naming convention:
+
+```
+@cortex/{category}-{provider}
+```
+
+Examples:
+- `@cortex/llm-groq`
+- `@cortex/store-qdrant`
+- `@cortex/connector-github`
+
+Core dynamically loads adapters by package name from config.

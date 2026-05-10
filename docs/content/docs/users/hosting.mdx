@@ -1,0 +1,58 @@
+---
+title: Hosting
+description: Run Cortex standalone, in Docker, or on serverless platforms.
+---
+
+# Hosting
+
+## Standalone
+
+Run directly on any machine with Node.js 20+:
+
+```bash
+npm install
+npm start
+```
+
+Use `pm2` or `systemd` for production:
+
+```bash
+pm2 start src/platform/standalone/bin.js --name cortex
+```
+
+## Docker
+
+```bash
+docker-compose -f docker/docker-compose.yml up -d
+```
+
+This starts Cortex + Ollama together. No local Ollama needed.
+
+## AWS Lambda
+
+Deploy the serverless handler:
+
+```bash
+cd src/platform/serverless/aws-lambda
+npm run package
+```
+
+Upload the zip to Lambda. Set environment variables for adapter configs.
+
+## Cloudflare Workers
+
+```bash
+cd src/platform/serverless/cloudflare-workers
+npx wrangler deploy
+```
+
+## Environment-specific config
+
+Use `CORTEX_*` environment variables to adapt to each platform without
+changing YAML files:
+
+```bash
+CORTEX_ADAPTERS_STORE_DEFAULT=postgres
+CORTEX_ADAPTERS_STORE_PROVIDERS_POSTGRES_CONFIG_CONNECTIONSTRING="postgres://..."
+CORTEX_MEMORY_MODE=rich
+```

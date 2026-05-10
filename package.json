@@ -19,9 +19,9 @@
     "setup": "node src/scripts/setup.js",
     "migrate": "node src/scripts/migrate.js",
     "doctor": "node src/scripts/doctor.js",
-    "docs:dev": "cd docs && npm run dev",
-    "docs:build": "cd docs && npm run build",
-    "docs:check": "cd docs && npm run check"
+    "docs:dev": "npm run -w docs dev",
+    "docs:build": "npm run -w docs build",
+    "docs:check": "npm run -w docs check"
   },
   "workspaces": [
     "src/adapters/*/*",

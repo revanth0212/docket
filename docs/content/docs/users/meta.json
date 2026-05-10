@@ -1,0 +1,5 @@
+{
+  "title": "User Guide",
+  "description": "For people who want to use Cortex as-is with configuration changes.",
+  "pages": ["quickstart", "configuration", "ingestion", "querying", "memory-modes", "hosting"]
+}

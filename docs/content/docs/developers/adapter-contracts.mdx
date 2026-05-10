@@ -1,0 +1,75 @@
+---
+title: Adapter Contracts
+description: The five frozen interfaces that all adapters implement.
+---
+
+# Adapter Contracts
+
+All adapter interfaces live in `src/core/interfaces/` and are **frozen**.
+They can only change with architect approval.
+
+## The five contracts
+
+| Contract | Purpose | Key methods |
+|----------|---------|-------------|
+| `LlmAdapter` | Chat completions | `chat(messages, options)` |
+| `EmbedderAdapter` | Text embeddings | `embed(text)`, `embedBatch(texts)` |
+| `StoreAdapter` | Database + vector search | `createMemory`, `vectorSearch`, `getMemoryGraph` |
+| `BlobAdapter` | Raw file storage | `put(key, data, metadata)`, `get(key)` |
+| `QueueAdapter` | Background jobs | `enqueue(type, payload)`, `dequeue(type)`, `registerWorker` |
+
+## Common interface features
+
+Every adapter contract includes:
+
+- `constructor(config)` — validates and stores config
+- `initialize()` — async setup (connections, migrations)
+- `health()` — returns `{ ok, latency, error? }`
+- `static get metadata()` — adapter discovery info
+
+## Validation
+
+All adapters validate config in the constructor. Use Zod or manual checks:
+
+```javascript
+validateConfig(config) {
+  if (!config || typeof config !== 'object') {
+    throw new Error('Config must be an object');
+  }
+  if (!config.baseUrl) {
+    throw new Error('baseUrl is required');
+  }
+  return config;
+}
+```
+
+## Health checks
+
+The default health check in most interfaces performs a real operation
+(e.g., a 1-token chat or a test embedding). Override if your adapter
+has a cheaper ping method.
+
+## Metadata
+
+```javascript
+static get metadata() {
+  return {
+    name: 'ollama-llm',
+    version: '0.1.0',
+    capabilities: ['chat', 'streaming'],
+    cortexCompatibility: '>=0.1.0 <0.3.0'
+  };
+}
+```
+
+## Testing your adapter
+
+Every adapter must pass the contract test suite in
+`tests/integration/adapter-contracts/`. These tests verify that your
+implementation satisfies the interface without knowing your internals.
+
+Read the specific contract pages for implementation details:
+- [Adding an LLM](/docs/developers/adding-an-llm)
+- [Adding a Store](/docs/developers/adding-a-store)
+- [Adding a Blob Provider](/docs/developers/adding-a-blob-provider)
+- [Adding a Queue Provider](/docs/developers/adding-a-queue-provider)

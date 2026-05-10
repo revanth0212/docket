@@ -13,7 +13,7 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 **Rules of Engagement**:
 1. Agents never modify `src/core/interfaces/` without explicit architect approval
 2. Agents always write tests before/during implementation (TDD vibe)
-3. Agents always update docs when changing user-facing behavior
+3. **Agents always update docs when changing user-facing behavior — no exceptions**
 4. Agents commit frequently with semantic messages
 5. When stuck, agents ask — they don't hallucinate solutions
 
@@ -31,6 +31,7 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 - Final review before merge to `main`
 - Approve memory semantics changes (sector model, decay functions, RBAC policies)
 - Decide flat vs rich mode defaults per release
+- **Block merges where docs are missing or stale for user-facing changes**
 
 **When to escalate to architect**:
 - Changing any file in `src/core/interfaces/`
@@ -40,6 +41,7 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 - Adding new external dependencies to core
 - Adding/removing memory sectors or changing decay math
 - Changing RBAC policy model (resource-based vs role-based)
+- Docs are ambiguous about who the audience is
 
 ---
 
@@ -62,7 +64,8 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 4. Implement in src/ (green)
 5. Refactor, ensure docs updated (blue)
 6. Run full test suite: npm test
-7. Commit with semantic message
+7. Update docs if user-facing behavior changed
+8. Commit with semantic message
 ```
 
 **Constraints**:
@@ -71,34 +74,54 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 - ALWAYS handle errors with CortexError subclasses
 - ALWAYS add JSDoc to public methods
 - NEVER hardcode sector types or decay functions — read from config
+- **NEVER commit a user-facing feature without updating the corresponding docs page**
+- **NEVER change config defaults without updating `docs/content/docs/developers/config-schema.mdx`**
 
 ---
 
 ### 📚 `docs-agent`
 **Maintains documentation parity with code.**
 
-**Skills**: Technical writing, Markdown, OpenAPI, JSON Schema
+**Skills**: Technical writing, Markdown, OpenAPI, JSON Schema, fumadocs
 
 **Scope**:
-- `docs/users/`
-- `docs/developers/`
+- `docs/content/docs/users/` — user-facing docs
+- `docs/content/docs/developers/` — plugin developer docs
 - `README.md`
 - `CHANGELOG.md`
 
+**Docs Discipline — Non-negotiable**:
+- Every new API endpoint must be documented before merge
+- Every new config option must appear in the config schema reference
+- Every new adapter must have a developer guide page
+- Every user-facing behavior change must update the relevant user guide
+- Breaking changes must include migration notes
+- Docs are checked in CI: `npm run docs:check` must pass
+
 **Triggers** (auto-activated when backend-agent commits):
-- New API endpoint → update `docs/users/api/`
-- New config option → update `docs/users/configuration/`
-- New adapter → update `docs/developers/contributing/`
-- New core module (classifier, recall, RBAC) → update architecture docs
-- Breaking change → update `docs/developers/operations/upgrading.md`
+- New API endpoint → update `docs/content/docs/users/ingestion.mdx` or `querying.mdx`
+- New config option → update `docs/content/docs/developers/config-schema.mdx`
+- New adapter → add page under `docs/content/docs/developers/`
+- New core module (classifier, recall, RBAC) → update user guide + architecture docs
+- Breaking change → add migration note + update affected docs pages
+
+**Two Audiences — Know Who You Are Writing For**:
+
+| Audience | Who they are | What they need | Doc location |
+|----------|--------------|----------------|--------------|
+| **Users** | People who run Cortex as-is, tweak config, ingest/query data | Quickstart, config options, ingestion/query guides, hosting, memory modes | `docs/content/docs/users/` |
+| **Developers (plugin authors)** | People who extend Cortex with new adapters/connectors without forking core | Adapter contracts, implementation templates, config schema, adding LLMs/stores/blobs/queues | `docs/content/docs/developers/` |
+
+**Critical distinction**: Developer docs are NOT contributor docs. They are for people building plugins *within* the system, not people editing `src/core/`.
 
 **Workflow**:
 ```
 1. Detect code change via git diff or task assignment
 2. Identify affected docs sections
-3. Update docs to reflect new reality
-4. Run docs link checker
-5. Commit with [docs] prefix
+3. Determine audience: user-facing? plugin developer? both?
+4. Update docs to reflect new reality
+5. Run docs build: npm run docs:check
+6. Commit with [docs] prefix
 ```
 
 ---
@@ -115,6 +138,7 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 - Security checks (no secrets in logs, injection prevention, RBAC bypass attempts)
 - Decay math correctness (property-based tests)
 - Temporal query edge cases (overlapping validity, supersession chains)
+- **Docs accuracy checks** — verify docs match actual behavior
 
 **Workflow**:
 ```
@@ -123,7 +147,8 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 3. Write adversarial tests (malformed inputs, race conditions)
 4. Write property-based tests for decay functions
 5. Run load tests if new I/O paths added
-6. File issues with [qa] label
+6. Verify docs are updated and accurate for user-facing changes
+7. File issues with [qa] label
 ```
 
 ---
@@ -168,8 +193,8 @@ When an agent completes work, it leaves a **handoff note** in the task:
 - tests/integration/ingestion.test.js (NEW)
 
 **Docs Needed**:
-- [ ] User docs: multipart upload examples
-- [ ] Developer docs: blob adapter interface usage
+- [ ] User docs: multipart upload examples (`docs/content/docs/users/ingestion.mdx`)
+- [ ] Developer docs: blob adapter interface usage (`docs/content/docs/developers/adding-a-blob-provider.mdx`)
 - [ ] API docs: OpenAPI spec update for /ingest
 
 **Known Issues**:
@@ -251,6 +276,7 @@ After implementing, run npm test and update docs if user-facing behavior changed
 Never modify interfaces without architect approval.
 Commit with semantic messages: feat:, fix:, docs:, test:, refactor:.
 When implementing memory semantics, respect config.cortex.memory.mode (flat vs rich).
+Every user-facing change must include a corresponding docs update.
 ```
 
 **Recommended Settings**:
@@ -263,7 +289,7 @@ When implementing memory semantics, respect config.cortex.memory.mode (flat vs r
 @src/core/interfaces/store-adapter.js      # Contract
 @src/adapters/store/sqlite/                 # Where I implement
 @tests/integration/adapter-contracts/store-contract.test.js  # Test target
-@docs/developers/contributing/adding-store-adapter.md        # Docs to update
+@docs/content/docs/developers/adding-a-store.mdx              # Docs to update
 ```
 
 ---
@@ -397,6 +423,7 @@ A vibe-coded project lives or dies by:
 | Rollback rate | <5% | Reverted commits / total commits |
 | Decay correctness | 100% | Property-based tests pass for all decay functions |
 | RBAC coverage | 100% | Every memory route has access control test |
+| Docs build | 100% | `npm run docs:check` passes on every PR |
 
 ---
 

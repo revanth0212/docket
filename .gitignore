@@ -42,8 +42,10 @@ data/
 Thumbs.db
 
 # Docs build
-docs/.vitepress/dist/
-docs/.vitepress/cache/
+docs/dist/
+docs/.next/
+docs/node_modules/
+!.source/
 
 # Test artifacts
 tests/fixtures/temp/
