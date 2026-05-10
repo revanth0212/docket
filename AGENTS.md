@@ -2,7 +2,7 @@
 
 > **Project**: Cortex — Open-Source Second Brain Core
 > **Approach**: Vibe Coding with AI Agents
-> **Last Updated**: 2026-05-08
+> **Last Updated**: 2026-05-09
 
 ---
 
@@ -29,6 +29,8 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 - Approve new adapter categories
 - Resolve architectural conflicts
 - Final review before merge to `main`
+- Approve memory semantics changes (sector model, decay functions, RBAC policies)
+- Decide flat vs rich mode defaults per release
 
 **When to escalate to architect**:
 - Changing any file in `src/core/interfaces/`
@@ -36,13 +38,15 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 - Modifying the config schema
 - Changing the request lifecycle
 - Adding new external dependencies to core
+- Adding/removing memory sectors or changing decay math
+- Changing RBAC policy model (resource-based vs role-based)
 
 ---
 
 ### 🔧 `backend-agent`
 **Primary executor.** Implements features, adapters, routes, tests.
 
-**Skills**: Node.js, Fastify, SQL, testing, API design, async programming
+**Skills**: Node.js, Fastify, SQL, testing, API design, async programming, vector search, LLM prompt engineering
 
 **Scope**:
 - All of `src/`
@@ -66,6 +70,7 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 - ALWAYS use dependency injection — never instantiate adapters in core
 - ALWAYS handle errors with CortexError subclasses
 - ALWAYS add JSDoc to public methods
+- NEVER hardcode sector types or decay functions — read from config
 
 ---
 
@@ -84,6 +89,7 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 - New API endpoint → update `docs/users/api/`
 - New config option → update `docs/users/configuration/`
 - New adapter → update `docs/developers/contributing/`
+- New core module (classifier, recall, RBAC) → update architecture docs
 - Breaking change → update `docs/developers/operations/upgrading.md`
 
 **Workflow**:
@@ -100,21 +106,24 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 ### 🧪 `qa-agent`
 **Tests what backend-agent misses. Exploratory testing.**
 
-**Skills**: Testing strategies, edge case identification, load testing, security basics
+**Skills**: Testing strategies, edge case identification, load testing, security basics, property-based testing
 
 **Scope**:
 - Integration test gaps
 - E2E scenarios
 - Performance benchmarks
-- Security checks (no secrets in logs, injection prevention)
+- Security checks (no secrets in logs, injection prevention, RBAC bypass attempts)
+- Decay math correctness (property-based tests)
+- Temporal query edge cases (overlapping validity, supersession chains)
 
 **Workflow**:
 ```
 1. Review backend-agent commits
 2. Identify untested paths
 3. Write adversarial tests (malformed inputs, race conditions)
-4. Run load tests if new I/O paths added
-5. File issues with [qa] label
+4. Write property-based tests for decay functions
+5. Run load tests if new I/O paths added
+6. File issues with [qa] label
 ```
 
 ---
@@ -169,6 +178,23 @@ When an agent completes work, it leaves a **handoff note** in the task:
 
 ---
 
+## Core Module Reference (Phase 3+)
+
+New core modules introduced in v0.2.0:
+
+| Module | Path | Purpose |
+|--------|------|---------|
+| SectorClassifier | `src/core/modules/classifier/` | Classify memories into sectors via LLM |
+| RecallEngine | `src/core/modules/query/` | Composite retrieval (vector + graph + salience + recency) |
+| TemporalQuery | `src/core/modules/query/` | Point-in-time and validity-window queries |
+| DecayEngine | `src/core/modules/memory/` | Apply per-sector forgetting curves |
+| AccessControlledStore | `src/core/modules/security/` | RBAC wrapper over StoreAdapter |
+| IngestionService | `src/core/modules/ingestion/` | Full ingestion pipeline with classification |
+| QueryService | `src/core/modules/query/` | RAG pipeline with recall + RBAC |
+| MemoryService | `src/core/modules/memory/` | CRUD + graph relations + supersession |
+
+---
+
 ## Vibe Coding Checklist
 
 Before starting any task, agent must verify:
@@ -178,6 +204,7 @@ Before starting any task, agent must verify:
 - [ ] I know which docs sections need updating
 - [ ] I won't break the dependency graph (core ← server ← adapters)
 - [ ] I have a rollback plan (git stash / branch)
+- [ ] If building memory semantics, I check config for `cortex.memory.mode`
 
 ---
 
@@ -193,6 +220,7 @@ Before starting any task, agent must verify:
 - [ ] Migrations run automatically on init
 - [ ] Vector search works with sqlite-vec
 - [ ] Health check returns latency
+- [ ] Schema supports sector, salience, valid_from, valid_to, access_policy
 **Constraints**: Use better-sqlite3 (sync API). No external services.
 **Timebox**: 2 hours. Escalate if stuck.
 ```
@@ -216,12 +244,13 @@ Before starting any task, agent must verify:
 
 **System Prompt Addendum**:
 ```
-You are the backend-agent for Project Cortex. 
+You are the backend-agent for Project Cortex.
 You implement features within strict architectural boundaries.
 Before writing code, read the relevant interface file in src/core/interfaces/.
 After implementing, run npm test and update docs if user-facing behavior changed.
 Never modify interfaces without architect approval.
 Commit with semantic messages: feat:, fix:, docs:, test:, refactor:.
+When implementing memory semantics, respect config.cortex.memory.mode (flat vs rich).
 ```
 
 **Recommended Settings**:
@@ -249,7 +278,7 @@ const { BaseAdapter } = require('../../../core/interfaces/{category}-adapter');
 
 /**
  * {Provider} {Category} Adapter
- * 
+ *
  * @implements {BaseAdapter}
  */
 class {Provider}{Category}Adapter extends BaseAdapter {
@@ -297,13 +326,44 @@ module.exports = { Provider{Category}Adapter };
 
 ---
 
+## Quick Reference: Core Module Implementation Template
+
+When implementing ANY core module (Phase 3+):
+
+```javascript
+// src/core/modules/{name}/{name}-service.js
+const { getLogger } = require('../../utils/logger');
+
+/**
+ * {Module} Service
+ *
+ * Business logic layer. Never imports adapters directly — receives via DI.
+ */
+class {Module}Service {
+  constructor({ storeAdapter, llmAdapter, config }) {
+    this.deps = { storeAdapter, llmAdapter };
+    this.config = config;
+    this.logger = getLogger({ name: '{Module}Service' });
+  }
+
+  async execute(input) {
+    this.logger.info({ input }, '{Module} started');
+    // Implementation
+  }
+}
+
+module.exports = { {Module}Service };
+```
+
+---
+
 ## Emergency Procedures
 
 ### "I broke the build"
 1. Stop. Don't commit more.
 2. `git stash` or branch off
 3. Run `npm test` to identify failing tests
-4. Fix or escalate to architect with test output
+4. Fix or escalate to architect
 
 ### "The interface doesn't fit my adapter"
 1. Document the mismatch with examples
@@ -316,6 +376,11 @@ module.exports = { Provider{Category}Adapter };
 2. Evaluate: size, maintenance, license (must be OSS-compatible)
 3. Propose in task with justification
 4. If approved, add to adapter's package.json (not root unless core needs it)
+
+### "Decay math doesn't match expected values"
+1. Check config for correct halfLife and function type
+2. Write property-based test to verify against reference formula
+3. Escalate to architect if reference implementations disagree
 
 ---
 
@@ -330,6 +395,8 @@ A vibe-coded project lives or dies by:
 | Docs parity | 100% | Every user-facing feature documented before merge |
 | Agent autonomy | 90% | Tasks completed without architect intervention |
 | Rollback rate | <5% | Reverted commits / total commits |
+| Decay correctness | 100% | Property-based tests pass for all decay functions |
+| RBAC coverage | 100% | Every memory route has access control test |
 
 ---
 

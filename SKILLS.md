@@ -1,6 +1,6 @@
 # Cortex Agent Skills Registry
 
-> **Version**: 0.1.0
+> **Version**: 0.2.0
 > **Purpose**: Define capabilities, knowledge boundaries, and tool proficiencies for each agent role
 
 ---
@@ -14,10 +14,12 @@
 | **Node.js Runtime** | Expert | Async patterns, EventLoop, streams, buffers, worker_threads |
 | **Fastify Framework** | Advanced | Plugins, hooks, validation, serialization, error handling |
 | **JavaScript ES2023** | Expert | Optional chaining, top-level await, private fields, decorators |
-| **SQL & SQLite** | Advanced | Schema design, migrations, indexing, CTEs, window functions |
-| **Testing (Jest)** | Advanced | Mocks, spies, coverage, snapshot testing, async tests |
+| **SQL & SQLite** | Advanced | Schema design, migrations, indexing, CTEs, window functions, temporal tables |
+| **Testing (Jest)** | Advanced | Mocks, spies, coverage, snapshot testing, async tests, property-based tests |
 | **API Design** | Advanced | RESTful patterns, OpenAPI, pagination, rate limiting, idempotency |
 | **Git Workflow** | Advanced | Semantic commits, rebasing, feature branches, conflict resolution |
+| **LLM Prompt Engineering** | Advanced | Few-shot prompts, structured JSON output, system prompt design |
+| **RBAC Implementation** | Advanced | Resource-based access control, policy evaluation, principal extraction |
 
 ### Tier 2 Skills (Required Context)
 
@@ -28,6 +30,9 @@
 | **File Processing** | Intermediate | Streams, multipart, MIME detection, checksums, temp file cleanup |
 | **Error Architecture** | Advanced | Custom error classes, error codes, stack traces, user-friendly messages |
 | **Dependency Injection** | Advanced | Container pattern, factory functions, interface-based design |
+| **Temporal Queries** | Intermediate | Validity windows, point-in-time queries, supersession chains |
+| **Decay Functions** | Intermediate | Exponential decay, half-life math, property-based verification |
+| **Composite Scoring** | Intermediate | Weighted ranking, multi-signal retrieval, explainable traces |
 
 ### Tier 3 Skills (Awareness)
 
@@ -35,8 +40,9 @@
 |-------|-------|-------|
 | **Docker** | Basic | Read Dockerfile, understand layers, not building from scratch |
 | **CI/CD** | Basic | Read workflow files, understand test matrices |
-| **Security** | Basic | No secrets in code, SQL injection prevention, XSS awareness |
+| **Security** | Basic | No secrets in code, SQL injection prevention, XSS awareness, RBAC bypass prevention |
 | **Performance** | Basic | Profiling with clinic.js, memory leak detection |
+| **Graph Databases** | Basic | Neo4j Cypher basics, adjacency list vs. property graph |
 
 ### Forbidden Territory
 - ❌ Modifying `src/core/interfaces/` without architect approval
@@ -44,13 +50,18 @@
 - ❌ Writing code without corresponding tests
 - ❌ Using `console.log` instead of structured logger
 - ❌ Hardcoding config values (always use injected config)
+- ❌ Hardcoding sector types — always read from `config.memory.sectors`
+- ❌ Implementing decay functions without property-based tests
 
 ### Signature Patterns
+
 ```javascript
 // How backend-agent writes services
 class IngestionService {
-  constructor({ storeAdapter, blobAdapter, embedderAdapter, llmAdapter, queueAdapter }) {
+  constructor({ storeAdapter, blobAdapter, embedderAdapter, llmAdapter, queueAdapter, config }) {
     this.deps = { storeAdapter, blobAdapter, embedderAdapter, llmAdapter, queueAdapter };
+    this.config = config;
+    this.logger = getLogger({ name: 'IngestionService' });
   }
 
   async ingest(fileStream, options) {
@@ -58,9 +69,16 @@ class IngestionService {
     this.logger.info({ jobId, contentType: options.contentType }, 'Ingestion started');
 
     try {
-      // Pipeline: validate → extract → embed → store
+      // Pipeline: validate → extract → classify → embed → store
       const rawRef = await this.deps.blobAdapter.put(jobId, fileStream);
       const extracted = await this.extract(rawRef, options.contentType);
+
+      // Rich memory: classify sector
+      let sector = 'semantic';
+      if (this.config.memory?.mode === 'rich' && this.config.memory.sectors?.enabled) {
+        sector = await this.classifySector(extracted.text);
+      }
+
       const embedding = await this.deps.embedderAdapter.embed(extracted.text);
       const memory = await this.deps.storeAdapter.createMemory({
         id: jobId,
@@ -68,7 +86,9 @@ class IngestionService {
         contentType: options.contentType,
         extractedText: extracted.text,
         embedding,
-        metadata: extracted.metadata
+        sector,
+        metadata: extracted.metadata,
+        access: options.access || this.config.memory?.rbac?.defaultPolicy
       });
 
       this.logger.info({ jobId }, 'Ingestion completed');
@@ -103,6 +123,7 @@ class IngestionService {
 | **Fastify/Express** | Basic | Understand route definitions, middleware, request lifecycle |
 | **Testing Concepts** | Basic | Can explain what tests verify without writing them |
 | **Git** | Intermediate | Can read diffs, understand commit context |
+| **Memory Semantics** | Intermediate | Can explain sectors, decay, temporal queries, RBAC to users |
 
 ### Workflow Specialization
 
@@ -111,12 +132,14 @@ class IngestionService {
 - Imperative for instructions ("Run this command...")
 - Screenshots/diagrams for complex flows
 - Troubleshooting sections after every setup guide
+- Explain "flat vs rich mode" early in getting-started
 
 **Developer Docs Voice**:
 - Third person technical ("The adapter must implement...")
 - Code-first examples before explanation
 - Architecture Decision Records (ADRs) for major choices
 - Interface definitions as canonical reference
+- Document decay function math with LaTeX or clear formulas
 
 ### Automation Tools
 ```bash
@@ -139,6 +162,7 @@ npm run docs:sync-config  # Regenerate config docs from schema.json
 | **Edge Case Identification** | Expert | Null inputs, unicode, large payloads, race conditions, timeouts |
 | **Jest/Supertest** | Advanced | Complex setups, teardowns, parallel execution, coverage analysis |
 | **Adversarial Testing** | Advanced | Fuzzing, property-based testing, chaos engineering basics |
+| **Property-Based Testing** | Advanced | jsverify, fast-check — verifying decay functions, scoring algorithms |
 
 ### Tier 2 Skills (Required Context)
 
@@ -146,8 +170,9 @@ npm run docs:sync-config  # Regenerate config docs from schema.json
 |-------|-------|-------|
 | **Node.js Debugging** | Advanced | Inspector, heap dumps, async stack traces |
 | **Load Testing** | Intermediate | Autocannon, k6, Artillery — enough to benchmark APIs |
-| **Security Testing** | Intermediate | OWASP top 10, injection attempts, auth bypasses |
+| **Security Testing** | Intermediate | OWASP top 10, injection attempts, auth bypasses, RBAC bypasses |
 | **Observability** | Basic | Reading logs, traces, metrics to identify issues |
+| **Temporal Logic** | Intermediate | Testing validity windows, supersession chains, point-in-time edge cases |
 
 ### Signature Patterns
 
@@ -185,6 +210,24 @@ describe('IngestionService', () => {
       expect(flakyBlob.attempts).toBe(3);
       expect(result.id).toBeDefined();
     });
+  });
+});
+
+// Property-based decay test
+describe('DecayEngine', () => {
+  it('never increases salience over time', () => {
+    fc.assert(fc.property(
+      fc.record({
+        initialSalience: fc.float({ min: 0, max: 1 }),
+        halfLifeDays: fc.float({ min: 0.1, max: 365 }),
+        daysElapsed: fc.float({ min: 0, max: 365 * 10 })
+      }),
+      ({ initialSalience, halfLifeDays, daysElapsed }) => {
+        const decayed = exponentialDecay(initialSalience, halfLifeDays, daysElapsed);
+        expect(decayed).toBeLessThanOrEqual(initialSalience);
+        expect(decayed).toBeGreaterThanOrEqual(0);
+      }
+    ));
   });
 });
 ```
@@ -227,7 +270,8 @@ COPY src/ ./src/
 COPY config/ ./config/
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3   CMD node src/scripts/healthcheck.js || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node src/scripts/healthcheck.js || exit 1
 
 USER node
 EXPOSE 3000
@@ -246,6 +290,7 @@ jobs:
       matrix:
         node: [18, 20, 22]
         store: [sqlite, postgres]
+        memoryMode: [flat, rich]
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -256,7 +301,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm ci
-      - run: npm run test:integration -- --store=${{ matrix.store }}
+      - run: npm run test:integration -- --store=${{ matrix.store }} --memory=${{ matrix.memoryMode }}
 ```
 
 ---
@@ -272,6 +317,7 @@ jobs:
 | **Technical Leadership** | Expert | Code review, mentoring, conflict resolution, vision communication |
 | **JavaScript/Node.js** | Expert | Deep internals, performance characteristics, ecosystem trends |
 | **Database Design** | Expert | Normalization, indexing strategies, query optimization, partitioning |
+| **Cognitive Memory Systems** | Advanced | Memory sectors, decay models, temporal knowledge graphs, composite retrieval |
 
 ### Tier 2 Skills (Required Context)
 
@@ -280,7 +326,8 @@ jobs:
 | **LLM/AI Systems** | Advanced | RAG patterns, embedding strategies, prompt engineering, token economics |
 | **Vector Search** | Advanced | ANN algorithms, dimensionality trade-offs, hybrid search |
 | **Distributed Systems** | Advanced | CAP theorem, consensus, event sourcing, CQRS |
-| **Security Architecture** | Advanced | Threat modeling, zero trust, encryption at rest/transit |
+| **Security Architecture** | Advanced | Threat modeling, zero trust, encryption at rest/transit, RBAC design |
+| **Memory Psychology** | Intermediate | Human memory models (episodic, semantic, etc.), forgetting curves, salience |
 
 ### Decision Framework
 
@@ -288,10 +335,10 @@ When architect approves or rejects, they use this format:
 
 ```markdown
 **Decision**: Approve with modifications
-**Rationale**: 
+**Rationale**:
 - Interface change breaks existing Ollama adapter (line 23)
 - Suggested: add optional parameter instead of positional
-**Migration Path**: 
+**Migration Path**:
 - Phase 1: Support both signatures (deprecation warning)
 - Phase 2: Remove old signature in v0.3.0
 **Affected Agents**: backend-agent (update), docs-agent (document deprecation)
@@ -310,6 +357,9 @@ When architect approves or rejects, they use this format:
 | CI/CD failure | devops-agent | backend-agent | architect if infrastructure change needed |
 | Performance regression | qa-agent | backend-agent | architect if architectural fix needed |
 | Security concern | qa-agent | devops-agent | architect immediately |
+| Memory semantics change | backend-agent | architect | — |
+| Decay math dispute | qa-agent | backend-agent | architect |
+| RBAC policy question | backend-agent | architect | — |
 
 ---
 

@@ -2,7 +2,7 @@
 # Works out of the box with zero setup — just start Ollama locally
 
 cortex:
-  version: "0.1.0"
+  version: "0.2.0"
 
   server:
     port: 3000
@@ -11,6 +11,77 @@ cortex:
   logging:
     level: "info"  # debug | info | warn | error
     format: "pretty"  # pretty | json
+
+  # Memory Semantics (NEW in v0.2.0)
+  memory:
+    # flat = simple RAG (v0.1.0 behavior)
+    # rich = cognitive memory with sectors, decay, temporal graph, RBAC
+    mode: "flat"
+
+    sectors:
+      enabled: true
+      # Supported sectors. LLM classifies into one of these on ingestion.
+      types: ["episodic", "semantic", "procedural", "emotional", "reflective"]
+      default: "semantic"
+      # Override the classification prompt. Leave empty for built-in.
+      classificationPrompt: ""
+      # Cache classification results to avoid re-classifying on re-ingest
+      cacheClassifications: true
+
+    decay:
+      enabled: true
+      # Background job interval (ms). Set to 0 to disable background decay.
+      interval: 3600000  # 1 hour
+      # Decay function per sector. type: none | linear | exponential
+      functions:
+        episodic:
+          type: "exponential"
+          halfLifeDays: 30
+        semantic:
+          type: "none"
+        procedural:
+          type: "exponential"
+          halfLifeDays: 90
+        emotional:
+          type: "exponential"
+          halfLifeDays: 7
+        reflective:
+          type: "linear"
+          halfLifeDays: 365
+      # Minimum salience before a memory is considered "forgotten"
+      # Forgotten memories are excluded from search but retained in store.
+      forgottenThreshold: 0.05
+
+    temporal:
+      enabled: true
+      # Default validity window for new memories (null = indefinite)
+      defaultValidFrom: null
+      defaultValidTo: null
+      # Allow point-in-time queries via the query API
+      pointInTimeQueries: true
+
+    rbac:
+      enabled: true
+      # How principals are extracted from requests
+      # header = read X-Principal header
+      # jwt = verify JWT token, extract sub
+      # apiKey = lookup API key in store
+      authStrategy: "header"
+      # Header name when authStrategy is "header"
+      principalHeader: "X-Principal"
+      # Default access policy for new memories
+      # owner-only = only creator can read/write
+      # readers = creator + listed readers
+      # public = anyone can read
+      defaultPolicy: "owner-only"
+      # Named policies that can be referenced by name
+      policies:
+        public:
+          readers: ["*"]
+          writers: []
+        team:
+          readers: ["group:team"]
+          writers: ["group:team"]
 
   adapters:
     llm:
