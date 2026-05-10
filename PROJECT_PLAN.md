@@ -92,6 +92,30 @@ After this phase:
 
 ---
 
+## Phase 2.5: Control / Data Plane Separation (Day 14)
+**Theme**: Architectural hygiene. Separate operational control from data processing before building core services.
+
+### Milestone: `planes-separated`
+**Definition of Done**: Unified mode works (`npm start`). Split mode works (`npm run start:control` + `npm run start:data`). Docs explain the boundary.
+
+| Task | Agent | Est. Time | Deliverables |
+|------|-------|-----------|--------------|
+| Scaffold `src/data-plane/app.js` | backend-agent | 1h | Fastify app with data routes (health, ingest, query, memories) |
+| Scaffold `src/control-plane/app.js` | backend-agent | 1h | Fastify app with admin routes (config, plugins, RBAC, metrics) |
+| Create `src/platform/unified/` | backend-agent | 1h | Mounts both planes in one process for local dev |
+| Create `src/platform/control/` and `src/platform/data/` | backend-agent | 30m | Separate entry points and bin scripts |
+| Update `package.json` scripts | backend-agent | 15m | `start`, `start:control`, `start:data` |
+| Write architecture doc | docs-agent | 1h | `docs/developers/architecture/control-data-plane.mdx` |
+| **Review Gate** | architect | 30m | Verify route boundaries are clean |
+
+### Design Decisions
+- **Unified mode** (default): Single process on port 3000, control routes under `/admin/`
+- **Split mode**: Data plane on port 3000, control plane on port 3001, shared store + queue
+- **Adapter registry**: Owned by control plane; data plane receives read-only snapshot
+- **Backward compat**: `src/server/app.js` re-exports `src/data-plane/app.js`
+
+---
+
 ## Phase 3: Core Modules (Days 15-26)
 **Theme**: The brains. Rich cognitive memory — sector classification, composite recall, temporal graph, decay, RBAC.
 

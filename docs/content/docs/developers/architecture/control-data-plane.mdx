@@ -1,0 +1,114 @@
+---
+title: Control Plane vs Data Plane
+description: How Cortex separates operational control from data processing.
+---
+
+# Control Plane & Data Plane
+
+Cortex separates **operational concerns** (control plane) from **data processing** (data plane). This keeps RBAC, observability, plugin onboarding, and configuration management clean and independently scalable.
+
+## Why separate?
+
+| Concern | Control Plane | Data Plane |
+|---------|--------------|------------|
+| **RBAC** | Manage policies, principals, access rules | Enforce policies on every query/ingest |
+| **Observability** | Aggregate metrics, health, audit logs | Emit per-request spans and events |
+| **Plugins** | Register, validate, onboard adapters | Use adapters without knowing their provenance |
+| **Config** | Hot-reload YAML, env var resolution | Read resolved config snapshots |
+| **Scale** | Singleton (one per cluster) | Horizontally scalable (many instances) |
+| **Security** | Internal/admin network only | Exposed to users and external UIs |
+
+## Architecture
+
+```
+┌─────────────────┐         ┌─────────────────┐
+│   Control Plane │◄───────►│   Data Plane    │
+│   (Port 3001)   │  shared │   (Port 3000)   │
+│                 │  store  │                 │
+│  /admin/config  │   &     │  /ingest        │
+│  /admin/plugins │  queue  │  /query         │
+│  /admin/rbac    │         │  /memories      │
+│  /admin/health  │         │  /health        │
+└─────────────────┘         └─────────────────┘
+         │                           │
+         └───────────┬───────────────┘
+                     ▼
+            ┌─────────────────┐
+            │  Shared Core    │
+            │  (interfaces,   │
+            │   models,       │
+            │   config)       │
+            └─────────────────┘
+```
+
+## Shared resources
+
+Both planes share:
+- **Store** (SQLite/Postgres) — control plane writes config/RBAC tables; data plane reads them
+- **Queue** — control plane schedules plugin jobs; data plane processes ingestion and decay jobs
+- **Config loader** — control plane resolves and validates; data plane consumes the snapshot
+
+## Running locally
+
+### Standalone (both planes in one process)
+
+```bash
+npm start
+```
+
+This starts a unified server where control routes are mounted under `/admin/`.
+
+### Separate processes
+
+```bash
+# Terminal 1 — control plane
+npm run start:control
+
+# Terminal 2 — data plane
+npm run start:data
+```
+
+## API boundary
+
+### Control Plane routes (`/admin/*`)
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| GET | `/admin/health` | Aggregated adapter health |
+| GET | `/admin/config` | Resolved runtime config |
+| POST | `/admin/config` | Hot-reload config (validates first) |
+| GET | `/admin/plugins` | List registered adapters |
+| POST | `/admin/plugins` | Register/onboard a new adapter |
+| DELETE | `/admin/plugins/:name` | Deregister an adapter |
+| GET | `/admin/rbac/policies` | List RBAC policies |
+| POST | `/admin/rbac/policies` | Create or update a policy |
+| GET | `/admin/metrics` | Prometheus-compatible metrics |
+
+### Data Plane routes (`/*`)
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| GET | `/health` | Data plane health only |
+| POST | `/ingest` | Ingest a file or text |
+| POST | `/query` | Natural language query |
+| GET | `/memories/:id` | Get a memory |
+| POST | `/memories` | Create a memory directly |
+| PATCH | `/memories/:id` | Update a memory |
+| DELETE | `/memories/:id` | Delete a memory |
+| GET | `/memories/:id/relations` | Get memory graph |
+
+## Adapter registry separation
+
+- **Control plane** owns the `AdapterRegistry` — it loads, validates, and caches adapters.
+- **Data plane** receives a **read-only snapshot** of the registry at startup. It cannot load new adapters dynamically; it must be restarted or signaled to refresh.
+
+This prevents a compromised data plane from injecting malicious adapters.
+
+## Deployment modes
+
+| Mode | Use case | How |
+|------|----------|-----|
+| **Unified** | Local dev, small deployments | Single process, `/admin` prefix |
+| **Split process** | Production self-hosted | Two Node processes, shared SQLite |
+| **Split network** | Enterprise / multi-tenant | Control plane on internal VPC; data plane on public subnet |
+| **Serverless** | Edge / lambda | Data plane as serverless handler; control plane as separate admin function |

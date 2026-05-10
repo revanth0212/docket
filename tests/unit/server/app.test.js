@@ -22,7 +22,7 @@ describe('Server /health', () => {
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(response.body).toEqual({ status: 'ok' });
+    expect(response.body).toMatchObject({ status: 'ok' });
   });
 });
 

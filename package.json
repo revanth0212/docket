@@ -2,13 +2,15 @@
   "name": "cortex",
   "version": "0.1.0",
   "description": "Open-source Second Brain Core — ingest, embed, query",
-  "main": "src/platform/standalone/index.js",
+  "main": "src/platform/unified/index.js",
   "bin": {
-    "cortex": "src/platform/standalone/bin.js"
+    "cortex": "src/platform/unified/bin.js"
   },
   "scripts": {
-    "start": "node src/platform/standalone/bin.js",
-    "dev": "nodemon src/platform/standalone/bin.js",
+    "start": "node src/platform/unified/bin.js",
+    "start:control": "node src/platform/control/bin.js",
+    "start:data": "node src/platform/data/bin.js",
+    "dev": "nodemon src/platform/unified/bin.js",
     "test": "jest --coverage",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
