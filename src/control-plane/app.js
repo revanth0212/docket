@@ -2,6 +2,7 @@
 // Fastify application for the control plane — config, RBAC, plugins, observability
 
 const fastify = require('fastify');
+const { PluginService } = require('./services/plugin-service');
 
 /**
  * Build the control plane Fastify server
@@ -12,6 +13,8 @@ function buildControlPlane(options = {}) {
   const app = fastify({
     logger: options.logger ?? true
   });
+
+  const pluginService = new PluginService();
 
   // Aggregated health across all adapters
   app.get('/admin/health', async () => {
@@ -32,18 +35,33 @@ function buildControlPlane(options = {}) {
 
   // Plugin / adapter registry
   app.get('/admin/plugins', async () => {
-    // TODO: list registered adapters from AdapterRegistry
-    return { plugins: [] };
+    return { plugins: pluginService.list() };
   });
 
   app.post('/admin/plugins', async (request) => {
-    // TODO: validate and onboard adapter
-    return { status: 'registered' };
+    const { packageName, config } = request.body || {};
+    if (!packageName) {
+      return reply.status(400).send({ error: 'packageName is required' });
+    }
+
+    const info = await pluginService.register(packageName, config || {});
+    return { status: 'registered', plugin: info };
   });
 
-  app.delete('/admin/plugins/:name', async (request) => {
-    // TODO: deregister adapter
-    return { status: 'deregistered', name: request.params.name };
+  app.post('/admin/plugins/validate', async (request, reply) => {
+    const { packageName } = request.body || {};
+    if (!packageName) {
+      return reply.status(400).send({ error: 'packageName is required' });
+    }
+
+    const result = await pluginService.validate(packageName);
+    return result;
+  });
+
+  app.delete('/admin/plugins/:category/:name', async (request) => {
+    const key = `${request.params.category}:${request.params.name}`;
+    const ok = pluginService.deregister(key);
+    return { status: ok ? 'deregistered' : 'not_found', key };
   });
 
   // RBAC policy management

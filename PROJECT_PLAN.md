@@ -309,6 +309,15 @@ echo "🎉 Rich Memory complete!"
 - [ ] Emotional sentiment tracking over time
 - [ ] Cross-user shared memories (with consent and RBAC)
 
+### Plugin Ecosystem
+- [x] Adapter registry supports npm packages
+- [x] Plugin manifest validation
+- [x] Control plane plugin onboarding endpoints
+- [ ] CLI plugin installer (`cortex plugin install groq`)
+- [ ] Auto-discovery of `cortex-*` packages in node_modules
+- [ ] Verified adapter badge + extended contract test suite
+- [ ] Plugin marketplace / directory
+
 ### Platform
 - [ ] Kubernetes Helm chart
 - [ ] Vercel Edge adapter
