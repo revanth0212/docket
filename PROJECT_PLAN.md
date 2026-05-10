@@ -289,7 +289,8 @@ echo "🎉 Rich Memory complete!"
 - [ ] RSS/Atom feed connector
 
 ### Retrieval & Query
-- [ ] MCP server — native Model Context Protocol for Claude, Cursor, Windsurf
+- [ ] **MCP Data Plane** — Model Context Protocol server exposing query, ingest, and memory CRUD tools. Wraps the data plane REST API so Claude Desktop, Cursor, Windsurf, and other MCP clients can interact with Cortex without custom HTTP code.
+- [ ] **MCP Control Plane** — MCP server exposing admin tools: config reload, plugin onboarding, RBAC policy management, and health aggregation. Intended for admin / operator workflows in MCP-enabled IDEs.
 - [ ] VS Code extension — inline memory query and capture
 - [ ] CLI (`cortex`) — direct engine interaction, scripting
 - [ ] Streaming query responses

@@ -1,0 +1,233 @@
+---
+title: MCP Servers
+description: Model Context Protocol integration for Claude, Cursor, Windsurf, and other MCP clients.
+---
+
+# MCP Servers
+
+Cortex will expose **two Model Context Protocol (MCP) servers** — one for the data plane and one for the control plane. This mirrors our HTTP architecture: users interact with data, operators interact with configuration.
+
+> **Status**: Planned for post-v0.2.0. Track progress on the [roadmap](/docs/developers).
+
+## Why MCP?
+
+MCP lets Claude Desktop, Cursor, Windsurf, and any MCP-compatible client interact with Cortex as a native tool. Instead of writing HTTP calls, users can:
+
+- Ask Claude *"What did I photograph last week?"* and Cortex answers via the MCP data plane.
+- Tell Cursor *"Ingest this PDF into my second brain"* and the file is processed automatically.
+- Ask Windsurf *"Show me the health of my adapters"* and the MCP control plane returns live status.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    MCP CLIENTS                              │
+│   (Claude Desktop, Cursor, Windsurf, VS Code, etc.)         │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ stdio / SSE (MCP transport)
+                          │
+          ┌───────────────┴───────────────┐
+          │                               │
+          ▼                               ▼
+┌─────────────────────┐       ┌─────────────────────┐
+│  MCP Data Plane     │       │  MCP Control Plane  │
+│  (mcp-data)         │       │  (mcp-control)      │
+│                     │       │                     │
+│  Tools exposed:     │       │  Tools exposed:     │
+│  · cortex_query     │       │  · cortex_health    │
+│  · cortex_ingest    │       │  · cortex_config    │
+│  · cortex_get       │       │  · cortex_plugin_add│
+│  · cortex_create    │       │  · cortex_plugin_rm │
+│  · cortex_update    │       │  · cortex_rbac_list │
+│  · cortex_delete    │       │  · cortex_rbac_set  │
+│  · cortex_relate    │       │                     │
+│                     │       │  Resources exposed: │
+│  Resources exposed: │       │  · config://current │
+│  · memory://{id}    │       │  · plugin://list    │
+│  · search://{q}     │       │  · metrics://prom   │
+└─────────┬───────────┘       └─────────┬───────────┘
+          │                             │
+          │ wraps HTTP API              │ wraps HTTP API
+          │                             │
+          ▼                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     CORTEX HTTP API                         │
+│                                                             │
+│   Data Plane (Port 3000)      Control Plane (Port 3001)     │
+│   · POST /query               · GET  /admin/health          │
+│   · POST /ingest              · POST /admin/plugins         │
+│   · GET  /memories/:id        · GET  /admin/rbac/policies   │
+│   · ...                       · ...                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## MCP Data Plane (`mcp-data`)
+
+For **end users** who want to query and manage their memories.
+
+### Tools
+
+| Tool | Purpose | Maps to |
+|------|---------|---------|
+| `cortex_query` | Natural language search | `POST /query` |
+| `cortex_ingest` | Ingest text or file path | `POST /ingest` |
+| `cortex_get` | Retrieve a memory by ID | `GET /memories/:id` |
+| `cortex_create` | Create a memory directly | `POST /memories` |
+| `cortex_update` | Update a memory | `PATCH /memories/:id` |
+| `cortex_delete` | Delete a memory | `DELETE /memories/:id` |
+| `cortex_relate` | Create a relation between memories | `POST /memories/:id/relations` |
+
+### Resources
+
+| Resource | Purpose |
+|----------|---------|
+| `memory://{id}` | Full memory record |
+| `search://{query}` | Search results for a query string |
+
+### Example prompt flow
+
+```
+User: "What did I photograph last week?"
+
+Claude → calls cortex_query({
+  question: "What did I photograph last week?",
+  temporal: { dateFrom: "2026-05-03" }
+})
+
+Cortex → returns {
+  answer: "You photographed a red bicycle on a trail.",
+  sources: [{ id: "mem_abc123", score: 0.94 }]
+}
+
+Claude → reads memory://mem_abc123 for details
+Claude → responds to user with answer + source link
+```
+
+## MCP Control Plane (`mcp-control`)
+
+For **operators and developers** who manage the Cortex instance.
+
+### Tools
+
+| Tool | Purpose | Maps to |
+|------|---------|---------|
+| `cortex_health` | Aggregated adapter health | `GET /admin/health` |
+| `cortex_config` | View or reload runtime config | `GET/POST /admin/config` |
+| `cortex_plugin_add` | Onboard a new adapter | `POST /admin/plugins` |
+| `cortex_plugin_rm` | Deregister an adapter | `DELETE /admin/plugins/:name` |
+| `cortex_rbac_list` | List access policies | `GET /admin/rbac/policies` |
+| `cortex_rbac_set` | Create or update a policy | `POST /admin/rbac/policies` |
+
+### Resources
+
+| Resource | Purpose |
+|----------|---------|
+| `config://current` | Resolved YAML config snapshot |
+| `plugin://list` | All registered adapters with metadata |
+| `metrics://prom` | Prometheus-compatible metrics text |
+
+### Example prompt flow
+
+```
+User: "Register the Groq LLM adapter with my API key."
+
+Claude → calls cortex_plugin_add({
+  packageName: "cortex-llm-groq",
+  config: { apiKey: "gsk_...", model: "llama3-70b-8192" }
+})
+
+Cortex → validates package, initializes adapter, returns metadata
+Claude → confirms: "Groq adapter registered. Capabilities: chat."
+```
+
+## Why two MCP servers?
+
+Same reasoning as our HTTP separation:
+
+| Concern | MCP Data Plane | MCP Control Plane |
+|---------|---------------|-------------------|
+| **Audience** | End users | Operators / developers |
+| **Permissions** | Read/write own memories | Admin-only config changes |
+| **Risk** | Leaking a memory | Injecting a malicious adapter |
+| **Deployment** | Exposed to users | Internal / behind VPN |
+
+Most users only need `mcp-data`. Only admins who install plugins or debug adapters need `mcp-control`.
+
+## Implementation approach
+
+MCP servers are **thin wrappers** around the existing HTTP API:
+
+```
+┌─────────────────────────────┐
+│  MCP Request (JSON-RPC)     │
+│  {                          │
+│    "tool": "cortex_query",  │
+│    "args": { ... }          │
+│  }                          │
+└───────────┬─────────────────┘
+            │
+            ▼
+┌─────────────────────────────┐
+│  MCP Server Handler         │
+│  · validate args            │
+│  · map to HTTP call         │
+│  · forward to Cortex        │
+└───────────┬─────────────────┘
+            │ HTTP
+            ▼
+┌─────────────────────────────┐
+│  Cortex Data/Control Plane  │
+│  · process request          │
+│  · return JSON              │
+└───────────┬─────────────────┘
+            │
+            ▼
+┌─────────────────────────────┐
+│  MCP Response               │
+│  { content: [{ text }] }    │
+└─────────────────────────────┘
+```
+
+This means:
+- **No new business logic** in the MCP layer.
+- **HTTP API is the source of truth** — MCP just translates JSON-RPC to HTTP.
+- **Easy to test** — mock the HTTP client, test the MCP handlers in isolation.
+- **Easy to add new tools** — expose a new HTTP endpoint, add one mapping line in MCP.
+
+## Configuration
+
+Users configure MCP servers in their client settings:
+
+```json
+{
+  "mcpServers": {
+    "cortex-data": {
+      "command": "npx",
+      "args": ["-y", "cortex-mcp-data", "--baseUrl", "http://localhost:3000"]
+    },
+    "cortex-control": {
+      "command": "npx",
+      "args": ["-y", "cortex-mcp-control", "--baseUrl", "http://localhost:3001"]
+    }
+  }
+}
+```
+
+Or via environment variables:
+
+```bash
+export CORTEX_DATA_URL=http://localhost:3000
+export CORTEX_CONTROL_URL=http://localhost:3001
+npx cortex-mcp-data
+```
+
+## Backlog placement
+
+This work is scheduled for **post-v0.2.0** after the core HTTP API and plugin ecosystem are stable. The dependency order is:
+
+1. ✅ HTTP data plane routes (`/ingest`, `/query`, `/memories`)
+2. ✅ HTTP control plane routes (`/admin/*`)
+3. 🔄 Plugin ecosystem stable (`/admin/plugins`)
+4. ⏳ **MCP wrappers** (this page)
+
+Once the HTTP contract is solid, adding MCP is roughly **one day of work** per plane — mostly argument mapping and client boilerplate.
