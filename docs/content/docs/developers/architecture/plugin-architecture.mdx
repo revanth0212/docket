@@ -1,0 +1,301 @@
+---
+title: Plugin Architecture
+description: How adapters are discovered, validated, loaded, and used.
+---
+
+# Plugin Architecture
+
+Plugins in Cortex are **npm packages that implement a frozen interface**. There is no special plugin SDK, no proprietary registry, and no build step required. If you can write a JavaScript class, you can write a Cortex plugin.
+
+## The plugin contract
+
+Every plugin is a single JavaScript module that exports one class:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Plugin Package                           │
+│                     (npm module on disk)                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   index.js                                                      │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │  class MyAdapter extends FrozenInterface {              │   │
+│   │                                                         │   │
+│   │    constructor(config) { ... }                          │   │
+│   │    async initialize() { ... }                           │   │
+│   │    async primaryMethod(...) { ... }                     │   │
+│   │    async health() { ... }                               │   │
+│   │                                                         │   │
+│   │    static get metadata() {                              │   │
+│   │      return {                                            │   │
+│   │        name: 'my-adapter',                               │   │
+│   │        version: '0.1.0',                                 │   │
+│   │        category: 'llm',                                  │   │
+│   │        capabilities: ['chat'],                           │   │
+│   │        cortexCompatibility: '>=0.1.0 <0.3.0'             │   │
+│   │      };                                                  │   │
+│   │    }                                                     │   │
+│   │  }                                                      │   │
+│   │                                                         │   │
+│   │  module.exports = { MyAdapter };                        │   │
+│   └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│   package.json                                                  │
+│   { "name": "cortex-llm-myprovider", ... }                      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Adapter registry resolution
+
+When Cortex needs an adapter, the registry resolves the package name to a file path:
+
+```
+  Config says:
+  adapter: "@cortex/llm-ollama"
+         │
+         ▼
+┌──────────────────────┐
+│  AdapterRegistry     │
+│  .resolveAdapterPath │
+└──────┬───────────────┘
+       │
+       ├─ starts with "@cortex/" ?
+       │      └─▶ resolve to ./src/adapters/{category}/{name}/index
+       │
+       ├─ starts with "." ?
+       │      └─▶ resolve relative to process.cwd()
+       │
+       └─ otherwise
+              └─▶ require.resolve(packageName)  ← npm package
+       │
+       ▼
+  require(resolvedPath)
+       │
+       ▼
+  Find first class-like export
+       │
+       ▼
+  new AdapterClass(config)
+       │
+       ▼
+  instance.initialize()
+       │
+       ▼
+  Verify metadata exists
+       │
+       ▼
+  Return initialized adapter
+```
+
+## Plugin lifecycle
+
+```
+   Developer                     npm registry                    User system
+      │                              │                              │
+      │  npm publish                 │                              │
+      │─────────────────────────────▶│                              │
+      │                              │                              │
+      │                              │◄──── npm install plugin      │
+      │                              │      (user runs this)        │
+      │                              │                              │
+      │                              │                              │
+                                     ▼                              ▼
+      │                              │                    ┌─────────────────┐
+      │                              │                    │  PluginService  │
+      │                              │                    │  .validate()    │
+      │                              │                    └───────┬─────────┘
+      │                              │                            │
+      │                              │                    check metadata schema
+      │                              │                    check category match
+      │                              │                    check class exports
+      │                              │                            │
+      │                              │                            ▼
+      │                              │                    ┌─────────────────┐
+      │                              │                    │  valid ?        │
+      │                              │                    └───────┬─────────┘
+      │                              │                         yes │ no
+      │                              │                            ▼
+      │                              │                    ┌─────────────────┐
+      │                              │                    │  reject with    │
+      │                              │                    │  errors[]       │
+      │                              │                    └─────────────────┘
+      │                              │                            │
+      │                              │                            ▼
+      │                              │                    ┌─────────────────┐
+      │                              │                    │  PluginService  │
+      │                              │                    │  .register()    │
+      │                              │                    └───────┬─────────┘
+      │                              │                            │
+      │                              │                    AdapterRegistry
+      │                              │                    .loadAdapter()
+      │                              │                            │
+      │                              │                            ▼
+      │                              │                    ┌─────────────────┐
+      │                              │                    │  instance       │
+      │                              │                    │  initialized    │
+      │                              │                    └───────┬─────────┘
+      │                              │                            │
+      │                              │                            ▼
+      │                              │                    ┌─────────────────┐
+      │                              │                    │  stored in      │
+      │                              │                    │  PluginService  │
+      │                              │                    │  .registered    │
+      │                              │                    └─────────────────┘
+      │                              │                            │
+      │                              │                            ▼
+      │                              │                    Data Plane can now
+      │                              │                    use the adapter
+```
+
+## Runtime onboarding flow
+
+You do not need to restart Cortex to try a plugin. The control plane exposes validation and registration endpoints:
+
+```
+┌─────────────┐
+│   Client    │
+│  (admin UI  │
+│   or CLI)   │
+└──────┬──────┘
+       │
+       │ POST /admin/plugins/validate
+       │ { "packageName": "cortex-llm-groq" }
+       ▼
+┌─────────────────────────┐
+│  Control Plane          │
+│  PluginService.validate │
+│  · require() package    │
+│  · check metadata       │
+│  · infer category       │
+└───────┬─────────────────┘
+        │ { valid: true, manifest, category }
+        │
+        │ POST /admin/plugins
+        │ { "packageName": "cortex-llm-groq",
+        │   "config": { "apiKey": "..." } }
+        ▼
+┌─────────────────────────┐
+│  Control Plane          │
+│  PluginService.register │
+│  · instantiate class    │
+│  · call initialize()    │
+│  · store in registry    │
+└───────┬─────────────────┘
+        │ { status: "registered", plugin }
+        │
+        │ (adapter is now live)
+        ▼
+┌─────────────────────────┐
+│  Data Plane             │
+│  reads registry snapshot │
+│  and uses new adapter   │
+└─────────────────────────┘
+```
+
+## Adapter class anatomy
+
+Here is the complete anatomy of a well-behaved adapter:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                    Adapter Class                            │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│  CONSTRUCTOR                                               │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  constructor(config) {                             │    │
+│  │    super(config);   ← validateConfig() called here │    │
+│  │    this.apiKey = config.apiKey;                    │    │
+│  │    this.model = config.model || 'default';         │    │
+│  │  }                                                 │    │
+│  └────────────────────────────────────────────────────┘    │
+│                                                            │
+│  INITIALIZATION                                            │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  async initialize() {                              │    │
+│  │    const health = await this.health();             │    │
+│  │    if (!health.ok) throw new Error(...);           │    │
+│  │  }                                                 │    │
+│  └────────────────────────────────────────────────────┘    │
+│                                                            │
+│  PRIMARY METHODS (vary by interface)                       │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  LlmAdapter:     async chat(messages, options)     │    │
+│  │  EmbedderAdapter: async embed(text)                │    │
+│  │  StoreAdapter:   async createMemory(memory)        │    │
+│  │  BlobAdapter:    async put(key, data, metadata)    │    │
+│  │  QueueAdapter:   async enqueue(type, payload)      │    │
+│  └────────────────────────────────────────────────────┘    │
+│                                                            │
+│  HEALTH CHECK                                              │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  async health() {                                  │    │
+│  │    return { ok: true, latency: 42 };               │    │
+│  │  }                                                 │    │
+│  └────────────────────────────────────────────────────┘    │
+│                                                            │
+│  METADATA (static — inspected before instantiation)        │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  static get metadata() {                           │    │
+│  │    return {                                         │    │
+│  │      name: 'my-adapter',                            │    │
+│  │      version: '0.1.0',                              │    │
+│  │      category: 'llm',                               │    │
+│  │      capabilities: ['chat', 'stream'],              │    │
+│  │      cortexCompatibility: '>=0.1.0 <0.3.0',         │    │
+│  │      description: '...',                            │    │
+│  │      author: '...',                                 │    │
+│  │      repository: '...',                             │    │
+│  │      license: 'MIT'                                 │    │
+│  │    };                                               │    │
+│  │  }                                                  │    │
+│  └────────────────────────────────────────────────────┘    │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+## Security boundary
+
+The control plane owns the adapter registry for a reason. If the data plane could load arbitrary code at runtime, a compromised query endpoint could inject malicious adapters.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     SECURITY MODEL                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   Control Plane          Data Plane         External User   │
+│   ┌──────────┐          ┌──────────┐        ┌──────────┐   │
+│   │ Registry │◄─────────│ Snapshot │◄───────│  Client  │   │
+│   │ (RW)     │  push    │ (RO)     │  HTTP  │          │   │
+│   └──────────┘          └──────────┘        └──────────┘   │
+│        │                                                    │
+│        │ can load new adapters                              │
+│        ▼                                                    │
+│   ┌─────────────────┐                                       │
+│   │  npm packages   │                                       │
+│   │  (any code)     │                                       │
+│   └─────────────────┘                                       │
+│                                                             │
+│   Data plane NEVER calls require() on user-provided         │
+│   package names. It only uses pre-registered instances.     │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Dependency rules
+
+The codebase enforces a strict dependency direction via ESLint:
+
+```
+  Adapters ──may import──▶ Core interfaces
+  Adapters ──may import──▶ Core utils (id-generator, logger)
+  Adapters ──MUST NOT───▶ Core services, server routes, or other adapters
+
+  Core ──may import──▶ nothing outside core (interfaces are at the root)
+
+  Server ──may import──▶ Core + Adapters (via registry)
+  Server ──MUST NOT───▶ Adapter internals directly
+```
+
+This prevents spaghetti coupling. Adapters are truly swappable black boxes.

@@ -1,0 +1,269 @@
+---
+title: System Overview
+description: How Cortex is laid out from request to response.
+---
+
+# System Overview
+
+Cortex is a modular **Second Brain as a Service**. At its heart are five swappable adapters wrapped by a rich cognitive memory layer. This page shows how the pieces fit together.
+
+## High-level layout
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              YOUR UI                                    │
+│   (Web app, mobile, CLI, VS Code extension, MCP server, voice agent)    │
+└─────────────────────────────────┬───────────────────────────────────────┘
+                                  │ HTTP / REST
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           CORTEX CORE                                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
+│  │  Control Plane  │  │   Data Plane    │  │    Shared Services      │  │
+│  │   (Port 3001)   │  │   (Port 3000)   │  │                         │  │
+│  │                 │  │                 │  │  ┌───────────────────┐  │  │
+│  │  /admin/config  │  │  /ingest        │  │  │   Config Loader   │  │  │
+│  │  /admin/plugins │  │  /query         │  │  │   (YAML + env)    │  │  │
+│  │  /admin/rbac    │  │  /memories      │  │  └───────────────────┘  │  │
+│  │  /admin/health  │  │  /health        │  │  ┌───────────────────┐  │  │
+│  │                 │  │                 │  │  │   Adapter Registry│  │  │
+│  └─────────────────┘  └─────────────────┘  │  │   (load + cache)  │  │  │
+│           │                    │            │  └───────────────────┘  │  │
+│           └────────────────────┼────────────┘                         │  │
+│                                │                                      │  │
+│                                ▼                                      │  │
+│  ┌─────────────────────────────────────────────────────────────────┐  │  │
+│  │              ADAPTER LAYER (5 frozen interfaces)                │  │  │
+│  │  ┌────────┐  ┌──────────┐  ┌────────┐  ┌──────┐  ┌──────────┐  │  │  │
+│  │  │  LLM   │  │ Embedder │  │ Store  │  │ Blob │  │  Queue   │  │  │  │
+│  │  │Ollama  │  │ Ollama   │  │SQLite  │  │FS    │  │In-Memory │  │  │  │
+│  │  │OpenAI  │  │ Cohere   │  │Postgres│  │S3    │  │ Redis    │  │  │  │
+│  │  │Groq    │  │ OpenAI   │  │Qdrant  │  │R2    │  │ Bull     │  │  │  │
+│  │  └────────┘  └──────────┘  └────────┘  └──────┘  └──────────┘  │  │  │
+│  └─────────────────────────────────────────────────────────────────┘  │  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## Ingestion pipeline
+
+When you POST a file to `/ingest`, Cortex runs it through a multi-stage pipeline:
+
+```
+   User Upload
+        │
+        ▼
+┌───────────────┐
+│  /ingest API  │◄───── multipart parser, size limits, auth principal
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  BlobAdapter  │◄───── store raw file (returns rawRef key)
+│  .put()       │
+└───────┬───────┘
+        │ rawRef
+        ▼
+┌───────────────┐
+│  QueueAdapter │◄───── enqueue "ingest" job (async by default)
+│  .enqueue()   │
+└───────┬───────┘
+        │
+        ▼
+┌─────────────────────────┐
+│   Ingestion Worker      │
+│   (QueueAdapter worker) │
+└───────┬─────────────────┘
+        │
+        ▼
+┌─────────────────────────┐
+│   Text Extraction       │◄───── PDF, image OCR, audio transcription
+│   (content-type aware)  │
+└───────┬─────────────────┘
+        │ extractedText
+        ▼
+┌─────────────────────────┐
+│   Sector Classification │◄───── LLM classifies into episodic / semantic /
+│   (optional, rich mode) │        procedural / emotional / reflective
+└───────┬─────────────────┘
+        │ sector + summary
+        ▼
+┌─────────────────────────┐
+│   EmbedderAdapter       │◄───── generate vector embedding
+│   .embed()              │
+└───────┬─────────────────┘
+        │ embedding
+        ▼
+┌─────────────────────────┐
+│   StoreAdapter          │◄───── persist memory record + vector
+│   .createMemory()       │        + access policy + temporal bounds
+└───────┬─────────────────┘
+        │
+        ▼
+┌─────────────────────────┐
+│   Relation Discovery    │◄───── link to related memories (graph edges)
+│   (optional, rich mode) │
+└─────────────────────────┘
+        │
+        ▼
+   Response to user
+   { id, rawRef, sector, salience, createdAt }
+```
+
+## Query pipeline
+
+When you POST a question to `/query`, Cortex performs composite recall:
+
+```
+   User Question
+        │
+        ▼
+┌───────────────┐
+│  /query API   │◄───── parse request: question, sector filter,
+└───────┬───────┘        temporal constraints, principal (RBAC)
+        │
+        ▼
+┌─────────────────────────┐
+│   EmbedderAdapter       │◄───── embed the question into query vector
+│   .embed()              │
+└───────┬─────────────────┘
+        │ queryEmbedding
+        ▼
+┌─────────────────────────┐
+├─  StoreAdapter          │◄───── vector search: top-k candidates
+│   .vectorSearch()       │
+└───────┬─────────────────┘
+        │ candidates[]
+        ▼
+┌─────────────────────────┐
+├─  StoreAdapter          │◄───── graph traversal: expand via relations
+│   .getMemoryGraph()     │        (optional, rich mode)
+└───────┬─────────────────┘
+        │ expanded[]
+        ▼
+┌─────────────────────────┐
+│   RecallEngine          │◄───── composite scoring:
+│   (composite ranker)    │        · vector similarity (40%)
+│                         │        · graph proximity (20%)
+│                         │        · salience score   (15%)
+│                         │        · recency boost    (15%)
+│                         │        · temporal match   (10%)
+└───────┬─────────────────┘
+        │ ranked memories[]
+        ▼
+┌─────────────────────────┐
+│   RBAC Filter           │◄───── drop memories the principal cannot read
+│   (access policy check) │
+└───────┬─────────────────┘
+        │ authorized[]
+        ▼
+┌─────────────────────────┐
+│   LLMAdapter            │◄───── RAG prompt: question + memory context
+│   .chat()               │        → generate natural language answer
+└───────┬─────────────────┘
+        │
+        ▼
+   Response to user
+   { answer, sources[], trace[] }
+```
+
+## Memory model (rich mode)
+
+In **rich mode**, memories are not flat documents. They are cognitive objects:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Memory Record                          │
+├─────────────────────────────────────────────────────────────┤
+│  id: mem_abc123                                             │
+│  rawRef: blobs/mem_abc123/raw.jpg                           │
+│  contentType: image/jpeg                                    │
+├─────────────────────────────────────────────────────────────┤
+│  extractedText: "A red bicycle on a mountain trail"         │
+│  summary: "Mountain biking photo from Colorado trip"        │
+│  embedding: [0.12, -0.34, ...]  ← 768-dim float32          │
+├─────────────────────────────────────────────────────────────┤
+│  sector: "episodic"                                         │
+│  salience: 0.87  ← decays over time                         │
+│  validFrom: 2026-05-01                                      │
+│  validTo: null  ← null = indefinite                         │
+│  parentId: null  ← for threading / versioning               │
+├─────────────────────────────────────────────────────────────┤
+│  accessPolicy: "owner-only"                                 │
+│  metadata: { source: "iphone", gps: "39.5,-106.1" }        │
+├─────────────────────────────────────────────────────────────┤
+│  createdAt: 2026-05-10T09:00:00Z                            │
+│  updatedAt: 2026-05-10T09:00:00Z                            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              │ relations
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Source: mem_abc123  ──caused──▶  Target: mem_def456        │
+│  type: "caused"    confidence: 0.92   metadata: {}          │
+│                                                             │
+│  Source: mem_ghi789  ──similar──▶  Target: mem_abc123       │
+│  type: "similar"   confidence: 0.78   metadata: {}          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Data flow diagram
+
+```
+┌──────────┐     ┌─────────────┐     ┌─────────────────────────────┐
+│  Client  │────▶│  Data Plane │────▶│  Core Services              │
+│          │     │  Routes     │     │  (Ingestion / Query /       │
+│          │◄────│             │◄────│   Memory / Decay)           │
+└──────────┘     └──────┬──────┘     └─────────────┬───────────────┘
+                        │                          │
+                        │                          ▼
+                        │                ┌─────────────────┐
+                        │                │  Adapter        │
+                        │                │  Registry       │
+                        │                │  (read-only     │
+                        │                │   snapshot)     │
+                        │                └────────┬────────┘
+                        │                         │
+                        ▼                         ▼
+               ┌─────────────────────────────────────────────┐
+               │              ADAPTER LAYER                  │
+               │  ┌────────┐ ┌────────┐ ┌──────┐ ┌────────┐ │
+               │  │ Store  │ │ Blob   │ │ LLM  │ │ Embed  │ │
+               │  │SQLite  │ │FileSys │ │Ollama│ │Ollama  │ │
+               │  └────────┘ └────────┘ └──────┘ └────────┘ │
+               └─────────────────────────────────────────────┘
+                                      │
+                                      ▼
+               ┌─────────────────────────────────────────────┐
+               │           SHARED PERSISTENCE                │
+               │  ┌─────────────┐      ┌─────────────────┐   │
+               │  │  SQLite DB  │      │  In-Memory      │   │
+               │  │  (store +   │      │  Queue          │   │
+               │  │   vectors)  │      │  (job scheduler)│   │
+               │  └─────────────┘      └─────────────────┘   │
+               └─────────────────────────────────────────────┘
+```
+
+## Component responsibilities
+
+| Component | Owns | Does NOT own |
+|-----------|------|--------------|
+| **Control Plane** | Adapter registry, config, RBAC policies, metrics, plugin lifecycle | Business logic, memory content, vector math |
+| **Data Plane** | HTTP routes, request validation, auth principal extraction | Adapter implementations, persistence details |
+| **Core Services** | Ingestion pipeline, query pipeline, recall scoring, decay logic | HTTP transport, database internals |
+| **Adapter Layer** | Interface implementations, vendor API calls, connection management | Pipeline orchestration, scoring algorithms |
+| **Shared Persistence** | Raw data, embeddings, relations, jobs, config tables | Business rules, access control logic |
+
+## Request lifecycle
+
+```
+1. Client ──POST /query──▶ Data Plane
+2. Data Plane ──extract principal──▶ RBAC middleware
+3. Data Plane ──route handler──▶ QueryService
+4. QueryService ──embed question──▶ EmbedderAdapter
+5. QueryService ──vector search──▶ StoreAdapter
+6. QueryService ──composite rank──▶ RecallEngine
+7. QueryService ──filter access──▶ AccessControlledStore
+8. QueryService ──generate answer──▶ LLMAdapter
+9. QueryService ──{answer, sources, trace}──▶ Data Plane
+10. Data Plane ──JSON response──▶ Client
+```
