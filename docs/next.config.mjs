@@ -7,7 +7,9 @@ const withMDX = createMDX({
 /** @type {import('next').NextConfig} */
 const config = {
   reactStrictMode: true,
-  output: 'export',
+  // Only static export during production builds.
+  // Dev mode disables this to avoid catch-all route issues in Next.js 15.
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   distDir: 'dist',
   eslint: {
     ignoreDuringBuilds: true

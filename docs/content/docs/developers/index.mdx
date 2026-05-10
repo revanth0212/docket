@@ -1,0 +1,39 @@
+---
+title: Developer Guide
+description: For developers who want to build plugins and adapters within the Cortex system.
+---
+
+# Developer Guide
+
+Welcome to the Cortex Developer Guide. This section is for developers who want
+to extend Cortex with new adapters, connectors, and integrations — without
+forking or modifying core code.
+
+## What you'll find here
+
+- **[Overview](/docs/developers/overview)** — How the adapter contract model works
+- **[Adapter Contracts](/docs/developers/adapter-contracts)** — The five frozen interfaces
+- **[Adding an LLM](/docs/developers/adding-an-llm)** — Implement `LlmAdapter` for a new provider
+- **[Adding a Store](/docs/developers/adding-a-store)** — Implement `StoreAdapter` for a new database
+- **[Adding a Blob Provider](/docs/developers/adding-a-blob-provider)** — Implement `BlobAdapter`
+- **[Adding a Queue Provider](/docs/developers/adding-a-queue-provider)** — Implement `QueueAdapter`
+- **[Config Schema Reference](/docs/developers/config-schema)** — Full configuration options
+
+## Who this is for
+
+You are a **developer (plugin author)** if you want to:
+- Add support for a new LLM provider (Groq, Together, etc.)
+- Integrate a new vector database (Qdrant, Weaviate, etc.)
+- Build a connector that ingests from GitHub, Notion, or email
+- Package your extension as an npm module (`@cortex/llm-groq`)
+
+If you only want to run and configure Cortex, see the
+[User Guide](/docs/users) instead.
+
+## Getting started
+
+1. Read [Adapter Contracts](/docs/developers/adapter-contracts)
+2. Pick the interface you want to implement
+3. Use the implementation templates in this guide
+4. Write contract tests
+5. Publish or submit your adapter
