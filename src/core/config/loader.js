@@ -151,12 +151,10 @@ function applyEnvOverrides(config) {
     const path = key
       .slice(prefix.length)
       .toLowerCase()
-      .split('_')
-      .map((part, index) => 
-        index === 0 ? part : part[0].toUpperCase() + part.slice(1)
-      );
+      .split('_');
 
-    setDeep(config, path, parseEnvValue(value));
+    // Env vars target config.cortex.*, not config.* directly
+    setDeep(config, ['cortex', ...path], parseEnvValue(value));
   }
 
   return config;

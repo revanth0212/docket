@@ -28,7 +28,9 @@ module.exports = {
     'no-var': 'error',
 
     // Async
-    'require-await': 'error',
+    // Disabled: interface methods must return Promise, but implementations
+    // (e.g., better-sqlite3, fs operations) are often synchronous.
+    'require-await': 'off',
     'no-return-await': 'error',
 
     // Style

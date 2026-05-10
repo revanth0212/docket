@@ -16,6 +16,7 @@
     "test:integration": "jest tests/integration",
     "test:e2e": "jest tests/e2e --runInBand",
     "test:coverage": "jest --coverage --coverageReporters=text-summary",
+    "test:ci": "npm run lint && npm run test:unit -- --coverage && npm run docs:check",
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix",
     "setup": "node src/scripts/setup.js",

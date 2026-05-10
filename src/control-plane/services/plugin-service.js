@@ -3,7 +3,7 @@
 
 const { AdapterRegistry } = require('../../core/utils/adapter-registry');
 const { validateManifest, inferCategory } = require('../../core/utils/plugin-manifest');
-const { AdapterError, ConfigError } = require('../../core/errors');
+const { ConfigError } = require('../../core/errors');
 
 /**
  * Plugin Service

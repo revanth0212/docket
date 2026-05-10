@@ -2,8 +2,8 @@
 // Unified server — mounts data plane and control plane in one process
 
 const fastify = require('fastify');
-const { buildDataPlane } = require('../../data-plane/app');
-const { buildControlPlane } = require('../../control-plane/app');
+const { registerDataPlaneRoutes } = require('../../data-plane/app');
+const { registerControlPlaneRoutes } = require('../../control-plane/app');
 
 /**
  * Build the unified Fastify server
@@ -15,14 +15,11 @@ function buildUnifiedApp(options = {}) {
     logger: options.logger ?? true
   });
 
-  const dataPlane = buildDataPlane({ logger: false });
-  const controlPlane = buildControlPlane({ logger: false });
-
   // Register data plane routes at root
-  app.register(dataPlane);
+  app.register(registerDataPlaneRoutes);
 
-  // Register control plane routes under /admin
-  app.register(controlPlane, { prefix: '/admin' });
+  // Register control plane routes (already prefixed with /admin)
+  app.register(registerControlPlaneRoutes);
 
   return app;
 }

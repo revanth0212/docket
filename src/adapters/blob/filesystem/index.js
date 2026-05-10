@@ -39,7 +39,7 @@ class FilesystemBlobAdapter extends BlobAdapter {
 
   resolvePath(key) {
     // Prevent directory traversal
-    const sanitized = key.replace(/\.\./g, '').replace(/^[\/\\]/, '');
+    const sanitized = key.replace(/\.\./g, '').replace(/^[/\\]/, '');
     return path.join(this.basePath, sanitized);
   }
 
@@ -113,7 +113,7 @@ class FilesystemBlobAdapter extends BlobAdapter {
     return fs.existsSync(filePath);
   }
 
-  async getUrl(key, expirySeconds = 3600) {
+  async getUrl(_key, _expirySeconds = 3600) {
     // Filesystem doesn't support presigned URLs
     return null;
   }

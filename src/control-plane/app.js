@@ -5,15 +5,10 @@ const fastify = require('fastify');
 const { PluginService } = require('./services/plugin-service');
 
 /**
- * Build the control plane Fastify server
- * @param {Object} [options={}]
- * @returns {import('fastify').FastifyInstance}
+ * Register control plane routes on a Fastify instance
+ * @param {import('fastify').FastifyInstance} app
  */
-function buildControlPlane(options = {}) {
-  const app = fastify({
-    logger: options.logger ?? true
-  });
-
+async function registerControlPlaneRoutes(app) {
   const pluginService = new PluginService();
 
   // Aggregated health across all adapters
@@ -28,7 +23,7 @@ function buildControlPlane(options = {}) {
     return { mode: 'flat', adapters: {} };
   });
 
-  app.post('/admin/config', async (request) => {
+  app.post('/admin/config', async (_request) => {
     // TODO: validate and hot-reload config
     return { status: 'reloaded' };
   });
@@ -38,7 +33,7 @@ function buildControlPlane(options = {}) {
     return { plugins: pluginService.list() };
   });
 
-  app.post('/admin/plugins', async (request) => {
+  app.post('/admin/plugins', async (request, reply) => {
     const { packageName, config } = request.body || {};
     if (!packageName) {
       return reply.status(400).send({ error: 'packageName is required' });
@@ -70,7 +65,7 @@ function buildControlPlane(options = {}) {
     return { policies: [] };
   });
 
-  app.post('/admin/rbac/policies', async (request) => {
+  app.post('/admin/rbac/policies', async (_request) => {
     // TODO: create or update policy
     return { status: 'saved' };
   });
@@ -81,7 +76,19 @@ function buildControlPlane(options = {}) {
     reply.type('text/plain');
     return '# cortex_metrics placeholder\n';
   });
+}
 
+/**
+ * Build the control plane Fastify server
+ * @param {Object} [options={}]
+ * @returns {import('fastify').FastifyInstance}
+ */
+function buildControlPlane(options = {}) {
+  const app = fastify({
+    logger: options.logger ?? true
+  });
+
+  app.register(registerControlPlaneRoutes);
   return app;
 }
 
@@ -101,4 +108,4 @@ async function startControlPlane(options = {}) {
   return app;
 }
 
-module.exports = { buildControlPlane, startControlPlane };
+module.exports = { registerControlPlaneRoutes, buildControlPlane, startControlPlane };

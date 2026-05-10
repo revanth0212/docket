@@ -4,28 +4,23 @@
 const fastify = require('fastify');
 
 /**
- * Build the data plane Fastify server
- * @param {Object} [options={}]
- * @returns {import('fastify').FastifyInstance}
+ * Register data plane routes on a Fastify instance
+ * @param {import('fastify').FastifyInstance} app
  */
-function buildDataPlane(options = {}) {
-  const app = fastify({
-    logger: options.logger ?? true
-  });
-
+async function registerDataPlaneRoutes(app) {
   // Health check (data plane only)
   app.get('/health', async () => {
     return { status: 'ok', plane: 'data' };
   });
 
   // Ingestion
-  app.post('/ingest', async (request, reply) => {
+  app.post('/ingest', async (_request, _reply) => {
     // TODO: wire to IngestionService in Phase 3
     return { status: 'pending', id: 'mem_stub' };
   });
 
   // Query
-  app.post('/query', async (request, reply) => {
+  app.post('/query', async (_request, _reply) => {
     // TODO: wire to QueryService in Phase 3
     return { answer: '', sources: [], trace: [] };
   });
@@ -36,7 +31,7 @@ function buildDataPlane(options = {}) {
     return { id: request.params.id };
   });
 
-  app.post('/memories', async (request) => {
+  app.post('/memories', async (_request) => {
     // TODO: wire to MemoryService in Phase 3
     return { status: 'pending' };
   });
@@ -46,7 +41,7 @@ function buildDataPlane(options = {}) {
     return { id: request.params.id };
   });
 
-  app.delete('/memories/:id', async (request) => {
+  app.delete('/memories/:id', async (_request) => {
     // TODO: wire to MemoryService in Phase 3
     return { deleted: true };
   });
@@ -55,7 +50,19 @@ function buildDataPlane(options = {}) {
     // TODO: wire to MemoryService in Phase 3
     return { memoryId: request.params.id, edges: [] };
   });
+}
 
+/**
+ * Build the data plane Fastify server
+ * @param {Object} [options={}]
+ * @returns {import('fastify').FastifyInstance}
+ */
+function buildDataPlane(options = {}) {
+  const app = fastify({
+    logger: options.logger ?? true
+  });
+
+  app.register(registerDataPlaneRoutes);
   return app;
 }
 
@@ -75,4 +82,4 @@ async function startDataPlane(options = {}) {
   return app;
 }
 
-module.exports = { buildDataPlane, startDataPlane };
+module.exports = { registerDataPlaneRoutes, buildDataPlane, startDataPlane };

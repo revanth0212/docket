@@ -3,7 +3,6 @@ module.exports = {
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
     'src/**/*.js',
-    '!src/platform/**/*.js', // Platform-specific, tested via E2E
     '!src/scripts/**/*.js'
   ],
   testMatch: [
@@ -16,5 +15,13 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   verbose: true,
-  forceExit: true
+  forceExit: true,
+  coverageThreshold: {
+    global: {
+      branches: 15,
+      functions: 15,
+      lines: 15,
+      statements: 15
+    }
+  }
 };
