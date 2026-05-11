@@ -7,19 +7,30 @@ const { PluginService } = require('./services/plugin-service');
 /**
  * Register control plane routes on a Fastify instance
  * @param {import('fastify').FastifyInstance} app
+ * @param {Object} [options={}]
  */
-async function registerControlPlaneRoutes(app) {
+async function registerControlPlaneRoutes(app, options = {}) {
   const pluginService = new PluginService();
+  const registry = options.registry;
+  const config = options.config;
 
   // Aggregated health across all adapters
   app.get('/admin/health', async () => {
-    // TODO: query adapter health from registry in Phase 3
+    if (registry) {
+      const adapters = await registry.healthCheck();
+      return { status: 'ok', plane: 'control', adapters };
+    }
     return { status: 'ok', plane: 'control', adapters: {} };
   });
 
   // Config management
   app.get('/admin/config', async () => {
-    // TODO: return resolved runtime config snapshot
+    if (config) {
+      return {
+        mode: config.cortex.memory?.mode || 'flat',
+        adapters: config.cortex.adapters
+      };
+    }
     return { mode: 'flat', adapters: {} };
   });
 

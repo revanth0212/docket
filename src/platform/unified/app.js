@@ -16,10 +16,13 @@ function buildUnifiedApp(options = {}) {
   });
 
   // Register data plane routes at root
-  app.register(registerDataPlaneRoutes);
+  app.register(registerDataPlaneRoutes, { adapters: options.adapters });
 
   // Register control plane routes (already prefixed with /admin)
-  app.register(registerControlPlaneRoutes);
+  app.register(registerControlPlaneRoutes, {
+    registry: options.registry,
+    config: options.config
+  });
 
   return app;
 }

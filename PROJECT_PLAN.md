@@ -278,15 +278,49 @@ echo "🎉 Rich Memory complete!"
 
 ---
 
+## Competitive Analysis: Rowboat
+
+[Rowboat](https://github.com/rowboatlabs/rowboat) is a YC S24 "open-source AI coworker" with significant UX overlap. Studying it surfaces gaps in Cortex's roadmap.
+
+### What Rowboat Does Well
+
+| Capability | Rowboat | Cortex v0.2.0 | Gap |
+|------------|---------|---------------|-----|
+| **Zero-setup onboarding** | Download binary, run, guided config | `npm install` + `npm run setup` + `npm run doctor` | Cortex requires Node.js; Rowboat ships binaries. Plan: add `cortex` CLI + Homebrew + Docker. |
+| **Knowledge graph visualization** | Native graph UI, editable nodes | None planned yet | **Add:** Graph visualization endpoint + web UI component. |
+| **Meeting prep & notes** | Auto-briefs from prior decisions, action items | None | **Add:** Meeting connector + prep service. |
+| **Voice memos** | Deepgram input, ElevenLabs output | None | **Add:** Audio ingestion via Whisper/Deepgram adapter. |
+| **Live notes** | Auto-updating notes that track topics across web/social | None | **Add:** Live note service with polling connectors. |
+| **Content generation** | PDF slides, emails, docs from memory graph | None | **Add:** Artifact generation service (templates + LLM). |
+| **Obsidian export** | Plain Markdown vault with backlinks | None | **Add:** Markdown export connector. |
+| **Web search** | Exa integration for live search | None | **Add:** Search adapter interface + Exa/Google implementations. |
+| **Gmail/Calendar/Drive** | Native Google integrations | Generic IMAP only | **Add:** Google Workspace connectors. |
+| **Fireflies** | Meeting transcription ingestion | None | **Add:** Fireflies connector. |
+| **MCP ecosystem** | Composio + MCP for external tools | Planned (Data + Control plane MCP) | Cortex is ahead architecturally but needs more tool implementations. |
+| **Model flexibility** | Ollama, LM Studio, or hosted via API key | Ollama + OpenAI-compatible planned | Parity via adapter registry. |
+
+### Key Takeaways
+
+1. **Onboarding friction matters.** Rowboat wins by shipping a `.app` / `.exe`. Cortex must offer `brew install cortex` and a Docker one-liner.
+2. **Output, not just storage.** Rowboat generates artifacts (decks, emails). Cortex currently plans ingestion + query only. Add artifact generation.
+3. **Voice and meeting workflows are table stakes.** Modern second-brain tools must capture voice memos and meeting context.
+4. **Markdown as lingua franca.** Obsidian-compatible export makes data portable and trustable.
+
+---
+
 ## Post-v0.2.0 Backlog
 
 ### Connectors (Source Ingestion)
 - [ ] GitHub connector — ingest repos, issues, PRs
 - [ ] Notion connector — ingest pages, databases
 - [ ] Google Drive connector — ingest docs, sheets, slides
+- [ ] Google Workspace connector — Gmail, Calendar, Contacts
 - [ ] Web clipper — ingest URLs with content extraction
 - [ ] Email connector — IMAP ingestion
 - [ ] RSS/Atom feed connector
+- [ ] Fireflies connector — meeting transcription ingestion
+- [ ] Markdown export — Obsidian-compatible vault with backlinks
+- [ ] Audio/voice ingestion — Whisper or Deepgram adapter for voice memos
 
 ### Retrieval & Query
 - [ ] **MCP Data Plane** — Model Context Protocol server exposing query, ingest, and memory CRUD tools. Wraps the data plane REST API so Claude Desktop, Cursor, Windsurf, and other MCP clients can interact with Cortex without custom HTTP code.
@@ -295,6 +329,10 @@ echo "🎉 Rich Memory complete!"
 - [ ] CLI (`cortex`) — direct engine interaction, scripting
 - [ ] Streaming query responses
 - [ ] Multi-hop graph reasoning
+- [ ] Web search integration — Exa, Google, or Brave search adapter for live context
+- [ ] Knowledge graph visualization — REST endpoint + web UI for browsing memory graph
+- [ ] Meeting prep service — auto-generate briefs from prior decisions, open questions, related threads
+- [ ] Artifact generation — PDF slides, emails, docs, plans from memory context
 
 ### Storage & Adapters
 - [ ] Postgres store adapter with pgvector
@@ -309,6 +347,8 @@ echo "🎉 Rich Memory complete!"
 - [ ] Dream/sleep mode — background re-indexing and relation discovery
 - [ ] Emotional sentiment tracking over time
 - [ ] Cross-user shared memories (with consent and RBAC)
+- [ ] Live notes — auto-updating memory nodes that poll web/social/news sources
+- [ ] Voice synthesis adapter — ElevenLabs or local TTS for audio output
 
 ### Plugin Ecosystem
 - [x] Adapter registry supports npm packages

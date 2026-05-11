@@ -6,10 +6,17 @@ const fastify = require('fastify');
 /**
  * Register data plane routes on a Fastify instance
  * @param {import('fastify').FastifyInstance} app
+ * @param {Object} [options={}]
  */
-async function registerDataPlaneRoutes(app) {
+async function registerDataPlaneRoutes(app, options = {}) {
+  const adapters = options.adapters || {};
+
   // Health check (data plane only)
   app.get('/health', async () => {
+    if (adapters.store) {
+      const storeHealth = await adapters.store.health();
+      return { status: 'ok', plane: 'data', adapters: { store: storeHealth } };
+    }
     return { status: 'ok', plane: 'data' };
   });
 
@@ -27,7 +34,10 @@ async function registerDataPlaneRoutes(app) {
 
   // Memory CRUD
   app.get('/memories/:id', async (request) => {
-    // TODO: wire to MemoryService in Phase 3
+    if (adapters.store) {
+      const memory = await adapters.store.getMemory(request.params.id);
+      return memory || { id: request.params.id, error: 'not_found' };
+    }
     return { id: request.params.id };
   });
 
@@ -47,7 +57,10 @@ async function registerDataPlaneRoutes(app) {
   });
 
   app.get('/memories/:id/relations', async (request) => {
-    // TODO: wire to MemoryService in Phase 3
+    if (adapters.store) {
+      const edges = await adapters.store.getMemoryGraph(request.params.id);
+      return { memoryId: request.params.id, edges };
+    }
     return { memoryId: request.params.id, edges: [] };
   });
 }

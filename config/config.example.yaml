@@ -1,0 +1,101 @@
+# Cortex User Configuration
+# Copy this file to config/config.yaml and fill in your settings.
+# Values here override config/defaults.yaml.
+# Environment variables override both: CORTEX_SERVER_PORT=8080
+
+cortex:
+  version: "0.2.0"
+
+  server:
+    port: 3000
+    host: "0.0.0.0"
+
+  logging:
+    level: "info"   # debug | info | warn | error
+    format: "pretty" # pretty | json
+
+  # Memory semantics (rich = sectors, decay, temporal graph; flat = simple RAG)
+  memory:
+    mode: "flat"
+
+    sectors:
+      enabled: true
+      types: ["episodic", "semantic", "procedural", "emotional", "reflective"]
+      default: "semantic"
+
+    decay:
+      enabled: true
+      interval: 3600000
+      functions:
+        episodic: { type: "exponential", halfLifeDays: 30 }
+        semantic: { type: "none" }
+        procedural: { type: "exponential", halfLifeDays: 90 }
+        emotional: { type: "exponential", halfLifeDays: 7 }
+        reflective: { type: "linear", halfLifeDays: 365 }
+      forgottenThreshold: 0.05
+
+    temporal:
+      enabled: true
+      defaultValidFrom: null
+      defaultValidTo: null
+      pointInTimeQueries: true
+
+    rbac:
+      enabled: true
+      authStrategy: "header"
+      principalHeader: "X-Principal"
+      defaultPolicy: "owner-only"
+      policies:
+        public:
+          readers: ["*"]
+          writers: []
+
+  adapters:
+    llm:
+      default: "ollama"
+      providers:
+        ollama:
+          adapter: "@cortex/llm-ollama"
+          config:
+            baseUrl: "http://localhost:11434"
+            model: "llama3.2"
+            timeout: 30000
+
+    embedder:
+      default: "ollama"
+      providers:
+        ollama:
+          adapter: "@cortex/embedder-ollama"
+          config:
+            baseUrl: "http://localhost:11434"
+            model: "nomic-embed-text"
+            dimensions: 768
+
+    store:
+      default: "sqlite"
+      providers:
+        sqlite:
+          adapter: "@cortex/store-sqlite"
+          config:
+            path: "./data/cortex.db"
+            enableWAL: true
+            busyTimeout: 5000
+
+    blob:
+      default: "filesystem"
+      providers:
+        filesystem:
+          adapter: "@cortex/blob-filesystem"
+          config:
+            basePath: "./data/blobs"
+            maxFileSize: "100mb"
+
+    queue:
+      default: "in-memory"
+      providers:
+        in-memory:
+          adapter: "@cortex/queue-memory"
+          config:
+            maxConcurrent: 5
+            retryAttempts: 3
+            retryDelay: 1000

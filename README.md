@@ -19,20 +19,29 @@ Unlike simple RAG systems, Cortex models memory after human cognition: memories 
 git clone https://github.com/yourusername/cortex.git
 cd cortex && npm install
 
-# 2. Start Ollama locally (for LLM + embeddings)
+# 2. Run interactive setup — creates config.yaml and data directories
+npm run setup
+
+# 3. Check prerequisites (Ollama, Node version, data directory)
+npm run doctor
+
+# 4. Start Ollama locally (for LLM + embeddings)
 ollama pull llama3.2
 ollama pull nomic-embed-text
 ollama serve
 
-# 3. Start Cortex
+# 5. Start Cortex
 npm start
 
-# 4. Ingest a photo
+# 6. Check health
+curl http://localhost:3000/health
+
+# 7. Ingest a photo
 curl -X POST http://localhost:3000/ingest \
   -F "file=@photo.jpg" \
   -F "async=false"
 
-# 5. Query your brain
+# 8. Query your brain
 curl -X POST http://localhost:3000/query \
   -H "Content-Type: application/json" \
   -d '{"question": "What did I photograph last week?"}'
@@ -111,23 +120,41 @@ cortex:
 git clone https://github.com/yourusername/cortex.git
 cd cortex && npm install
 
-# 2. Start Ollama locally
+# 2. Create your local config and data directories
+npm run setup
+
+# 3. Check prerequisites
+npm run doctor
+
+# 4. Start Ollama locally
 ollama pull llama3.2
 ollama pull nomic-embed-text
 ollama serve
 
-# 3. Start Cortex in dev mode
+# 5. Start Cortex in dev mode (auto-reload on file changes)
 npm run dev
 
-# 4. Run tests
+# 6. Run tests
 npm run test:unit
-ADAPTER=sqlite npm test -- tests/integration/adapter-contracts/store-contract.test.js
+npm run test:integration
 
-# 5. Start the docs site
+# 7. Start the docs site
 npm run docs:dev
 ```
 
 See the full [Local Development Guide](docs/content/docs/developers/local-development.mdx) for troubleshooting, adapter development workflow, and code quality scripts.
+
+## Distribution
+
+| Method | Command | Best For |
+|--------|---------|----------|
+| **npm** | `npm install -g cortex` | Developers, CI/CD, quick testing |
+| **Homebrew** | `brew install cortex` | macOS / Linux desktop users |
+| **Docker** | `docker pull cortex/cortex` | Reproducible deployments, teams |
+| **Binary** | Download from GitHub Releases | Air-gapped or restricted environments |
+| **Source** | `git clone && npm install` | Contributors, custom builds |
+
+After installation, run `cortex setup` to create your config, then `cortex doctor` to verify prerequisites.
 
 ## Hosting Options
 
