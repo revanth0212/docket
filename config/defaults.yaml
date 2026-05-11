@@ -95,6 +95,19 @@ cortex:
             timeout: 30000
             # For insight generation
             systemPrompt: "You are a helpful assistant analyzing personal memories."
+        lm-studio:
+          adapter: "@cortex/llm-openai-compatible"
+          config:
+            baseUrl: "http://localhost:1234/v1"
+            model: "local-model"
+            timeout: 30000
+        openai:
+          adapter: "@cortex/llm-openai-compatible"
+          config:
+            baseUrl: "https://api.openai.com/v1"
+            apiKey: "${OPENAI_API_KEY:-}"
+            model: "gpt-4o-mini"
+            timeout: 30000
         kimi:
           adapter: "@cortex/llm-openai-compatible"
           config:
@@ -112,6 +125,21 @@ cortex:
             baseUrl: "http://localhost:11434"
             model: "nomic-embed-text"
             dimensions: 768
+        lm-studio:
+          adapter: "@cortex/embedder-openai-compatible"
+          config:
+            baseUrl: "http://localhost:1234/v1"
+            model: "local-model"
+            dimensions: 768
+            timeout: 30000
+        openai:
+          adapter: "@cortex/embedder-openai-compatible"
+          config:
+            baseUrl: "https://api.openai.com/v1"
+            apiKey: "${OPENAI_API_KEY:-}"
+            model: "text-embedding-3-small"
+            dimensions: 1536
+            timeout: 30000
 
     store:
       default: "sqlite"

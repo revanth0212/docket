@@ -57,17 +57,26 @@ async function runSetup() {
   // Interactive provider selection
   console.log('\n--- Adapter Configuration ---\n');
 
-  const llmProvider = await ask('LLM provider (ollama/openai/groq)', 'ollama');
-  const llmUrl = await ask('LLM base URL', 'http://localhost:11434');
-  const llmModel = await ask('LLM model', 'llama3.2');
+  const llmProvider = await ask('LLM provider (ollama/lm-studio/openai/groq)', 'ollama');
 
-  const embedderUrl = await ask('Embedder base URL', 'http://localhost:11434');
-  const embedderModel = await ask('Embedder model', 'nomic-embed-text');
+  const llmDefaults = llmProvider === 'lm-studio'
+    ? { url: 'http://localhost:1234/v1', model: 'local-model' }
+    : { url: 'http://localhost:11434', model: 'llama3.2' };
+  const llmUrl = await ask('LLM base URL', llmDefaults.url);
+  const llmModel = await ask('LLM model', llmDefaults.model);
+
+  const embedderDefaults = llmProvider === 'lm-studio'
+    ? { url: 'http://localhost:1234/v1', model: 'local-model' }
+    : { url: 'http://localhost:11434', model: 'nomic-embed-text' };
+  const embedderUrl = await ask('Embedder base URL', embedderDefaults.url);
+  const embedderModel = await ask('Embedder model', embedderDefaults.model);
 
   const storePath = await ask('SQLite database path', './data/cortex.db');
   const blobPath = await ask('Blob storage path', './data/blobs');
 
   // Generate user config
+  const llmAdapterName = llmProvider === 'ollama' ? 'ollama' : 'openai-compatible';
+
   const config = `cortex:
   version: "0.2.0"
 
@@ -76,14 +85,14 @@ async function runSetup() {
       default: "${llmProvider}"
       providers:
         ${llmProvider}:
-          adapter: "@cortex/llm-${llmProvider === 'ollama' ? 'ollama' : llmProvider}"
+          adapter: "@cortex/llm-${llmAdapterName}"
           config:
             baseUrl: "${llmUrl}"
             model: "${llmModel}"
             timeout: 30000
 
     embedder:
-      default: "ollama"
+      default: "${llmProvider === 'lm-studio' ? 'lm-studio' : 'ollama'}"
       providers:
         ollama:
           adapter: "@cortex/embedder-ollama"
@@ -91,6 +100,13 @@ async function runSetup() {
             baseUrl: "${embedderUrl}"
             model: "${embedderModel}"
             dimensions: 768
+        lm-studio:
+          adapter: "@cortex/embedder-openai-compatible"
+          config:
+            baseUrl: "${embedderUrl}"
+            model: "${embedderModel}"
+            dimensions: 768
+            timeout: 30000
 
     store:
       default: "sqlite"
