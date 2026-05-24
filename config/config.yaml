@@ -1,0 +1,56 @@
+# Cortex User Configuration
+# This file overrides config/defaults.yaml.
+# Environment variables override both: CORTEX_SERVER_PORT=8080
+
+cortex:
+  version: "0.2.0"
+
+  adapters:
+    llm:
+      default: "lm-studio"
+      providers:
+        lm-studio:
+          adapter: "@cortex/llm-openai-compatible"
+          config:
+            baseUrl: "http://localhost:1234/v1"
+            model: "local-model"
+            timeout: 30000
+
+    embedder:
+      default: "ollama"
+      providers:
+        ollama:
+          adapter: "@cortex/embedder-ollama"
+          config:
+            baseUrl: "http://localhost:11434"
+            model: "nomic-embed-text"
+            dimensions: 768
+
+    store:
+      default: "sqlite"
+      providers:
+        sqlite:
+          adapter: "@cortex/store-sqlite"
+          config:
+            path: "./data/cortex.db"
+            enableWAL: true
+            busyTimeout: 5000
+
+    blob:
+      default: "filesystem"
+      providers:
+        filesystem:
+          adapter: "@cortex/blob-filesystem"
+          config:
+            basePath: "./data/blobs"
+            maxFileSize: "100mb"
+
+    queue:
+      default: "in-memory"
+      providers:
+        in-memory:
+          adapter: "@cortex/queue-memory"
+          config:
+            maxConcurrent: 5
+            retryAttempts: 3
+            retryDelay: 1000

@@ -308,6 +308,62 @@ echo "🎉 Rich Memory complete!"
 
 ---
 
+## Cloud Provider Coverage Strategy
+
+**Goal**: When a user chooses a cloud provider, they should be able to run Cortex entirely on that provider's stack. No cross-cloud dependencies required.
+
+### Coverage Matrix
+
+| Provider | LLM | Embedder | Store | Blob | Queue |
+|----------|-----|----------|-------|------|-------|
+| **Local / Self-hosted** | Ollama, LM Studio | Ollama, LM Studio | SQLite | Filesystem | In-memory |
+| **AWS** | Bedrock | Bedrock (Titan) | DynamoDB | S3 | SQS |
+| **Cloudflare** | Workers AI | Workers AI | D1 | R2 | Queues |
+| **GCP** | Vertex AI (Gemini) | Vertex AI | Firestore | Cloud Storage | Pub/Sub |
+| **Azure** | OpenAI Service | OpenAI Service | Cosmos DB | Blob Storage | Service Bus |
+| **OpenAI** | GPT-4o | text-embedding-3 | — | — | — |
+| **Groq** | Llama 3, Mixtral | — | — | — | — |
+
+### Provider Presets (Future)
+Instead of configuring 5 adapters individually, users can set a single provider preset:
+
+```yaml
+cortex:
+  provider: "cloudflare"  # or aws, gcp, azure, local
+  # All 5 adapter defaults resolve automatically
+```
+
+This maps to the provider's native services and injects the correct adapter configs.
+
+---
+
+## Local-to-Hosted Migration Path
+
+**Problem**: Users start locally (SQLite, filesystem, Ollama) and later want to move to hosted services (D1, R2, Workers AI) without losing data.
+
+### Phase 1: Export / Import Scripts
+- [ ] `cortex export --format=jsonl` — dump all memories, relations, blobs, and queue jobs
+- [ ] `cortex import --format=jsonl` — load into a new store adapter
+- [ ] `cortex migrate-store --from=sqlite --to=cloudflare-d1` — adapter-aware migration with schema translation
+- [ ] `cortex migrate-blob --from=filesystem --to=r2` — stream files from local disk to remote blob store
+
+### Phase 2: Config Transition
+- [ ] `cortex config switch --profile=hosted` — switch between local and hosted config profiles
+- [ ] Config profiles stored in `config/profiles/local.yaml` and `config/profiles/hosted.yaml`
+- [ ] `cortex doctor --profile=hosted` — verify hosted prerequisites before cutover
+
+### Phase 3: Live Replication (Advanced)
+- [ ] Dual-write mode: write to both local and hosted store during transition window
+- [ ] Read-from-hosted with local fallback
+- [ ] Cutover command: `cortex cutover --to=hosted` disables local writes and verifies consistency
+
+### Documentation
+- [ ] Migration guide: `docs/users/hosting/migrating-from-local.md`
+- [ ] Provider-specific checklists (AWS, Cloudflare, GCP, Azure)
+- [ ] Rollback procedures
+
+---
+
 ## Post-v0.2.0 Backlog
 
 ### Connectors (Source Ingestion)
@@ -335,11 +391,46 @@ echo "🎉 Rich Memory complete!"
 - [ ] Artifact generation — PDF slides, emails, docs, plans from memory context
 
 ### Storage & Adapters
+
+**Store adapters**
+- [x] SQLite (local, default)
 - [ ] Postgres store adapter with pgvector
+- [ ] Cloudflare D1 store adapter
+- [ ] AWS DynamoDB store adapter
+- [ ] GCP Firestore store adapter
+- [ ] Azure Cosmos DB store adapter
 - [ ] Qdrant vector store adapter
-- [ ] S3-compatible blob adapter (R2, MinIO)
-- [ ] Redis queue adapter
 - [ ] Neo4j graph adapter (optional replacement for relational graph)
+
+**Blob adapters**
+- [x] Filesystem (local, default)
+- [ ] S3-compatible blob adapter (AWS S3, R2, MinIO)
+- [ ] GCP Cloud Storage blob adapter
+- [ ] Azure Blob Storage adapter
+
+**Queue adapters**
+- [x] In-memory (local, default)
+- [ ] Redis queue adapter
+- [ ] AWS SQS queue adapter
+- [ ] Cloudflare Queues adapter
+- [ ] GCP Pub/Sub queue adapter
+- [ ] Azure Service Bus queue adapter
+
+**LLM adapters**
+- [x] Ollama (local)
+- [x] OpenAI-compatible (LM Studio, OpenAI, Groq, Kimi)
+- [ ] AWS Bedrock LLM adapter
+- [ ] Cloudflare Workers AI LLM adapter
+- [ ] GCP Vertex AI LLM adapter
+- [ ] Azure OpenAI LLM adapter
+
+**Embedder adapters**
+- [x] Ollama (local)
+- [x] OpenAI-compatible (LM Studio, OpenAI)
+- [ ] AWS Bedrock embedder adapter
+- [ ] Cloudflare Workers AI embedder adapter
+- [ ] GCP Vertex AI embedder adapter
+- [ ] Azure OpenAI embedder adapter
 
 ### Memory Semantics (Advanced)
 - [ ] Reflection engine — auto-generate insights from memory clusters
