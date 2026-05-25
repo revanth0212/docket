@@ -1,5 +1,5 @@
 {
   "title": "Architecture",
   "description": "High-level architecture decisions and deep dives.",
-  "pages": ["system-overview", "control-data-plane", "plugin-architecture", "integration-patterns", "mcp-servers"]
+  "pages": ["system-overview", "adapter-architecture", "control-data-plane", "plugin-architecture", "integration-patterns", "mcp-servers"]
 }
