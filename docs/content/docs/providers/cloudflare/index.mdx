@@ -1,0 +1,44 @@
+---
+title: Cloudflare Provider
+description: Deploy Cortex on Cloudflare's edge with Workers AI, D1, R2, and Queues.
+---
+
+# Cloudflare Provider
+
+Cloudflare offers a generous free tier and global edge deployment. All services run close to your users with minimal latency.
+
+## What You Get
+
+| Adapter | Implementation | Cloudflare Service |
+|---------|---------------|-------------------|
+| LLM | Cloudflare Workers AI | `@cf/meta/llama-3.1-8b-instruct` |
+| Embedder | Cloudflare Workers AI | `@cf/baai/bge-base-en-v1.5` |
+| Store | Cloudflare D1 | SQLite-compatible edge database |
+| Blob | Cloudflare R2 | S3-compatible object storage |
+| Queue | Cloudflare Queues | Distributed message queue |
+
+## Architecture
+
+```
+User → Cloudflare Edge → Workers AI (LLM/Embedder)
+                      → D1 (Store)
+                      → R2 (Blob)
+                      → Queues (Background jobs)
+```
+
+## Free Tier Limits
+
+| Service | Limit |
+|---------|-------|
+| Workers AI | 10,000 neurons/day |
+| D1 | 5M rows read/day, 100K rows write/day |
+| R2 | 10M Class A ops/month, 1M Class B ops/month |
+| Queues | 1M operations/month |
+
+## Next Steps
+
+- [Onboarding](/docs/providers/cloudflare/onboarding) — Create accounts, get API tokens, deploy
+- [Maintenance](/docs/providers/cloudflare/maintenance) — Monitoring, scaling, cost control
+- [FAQs](/docs/providers/cloudflare/faqs) — Common questions
+- [Troubleshooting](/docs/providers/cloudflare/troubleshooting) — Fix issues
+- [Migration](/docs/providers/cloudflare/migration) — Move from local or AWS

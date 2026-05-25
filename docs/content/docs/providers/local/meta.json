@@ -1,0 +1,5 @@
+{
+  "title": "Local",
+  "description": "Run Cortex on your laptop or home server with zero cloud dependencies.",
+  "pages": ["index", "onboarding", "maintenance", "faqs", "troubleshooting", "migration"]
+}

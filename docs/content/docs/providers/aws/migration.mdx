@@ -1,0 +1,123 @@
+---
+title: Migration
+description: Migrate to or from AWS.
+---
+
+# AWS Migration
+
+## Migrating from Local to AWS
+
+### 1. Export Local Data
+
+```bash
+# Export SQLite
+sqlite3 data/cortex.db ".dump" > local-export.sql
+
+# Export blobs
+aws s3 sync data/blobs s3://cortex-blobs-your-account-id
+```
+
+### 2. Create AWS Resources
+
+Follow the [AWS Onboarding](/docs/providers/aws/onboarding) guide to create:
+- DynamoDB table
+- S3 bucket
+- SQS queue
+- Bedrock model access
+
+### 3. Import to DynamoDB
+
+DynamoDB is schemaless — no SQL import. Use a script to read SQLite and write to DynamoDB:
+
+```bash
+node scripts/migrate-sqlite-to-dynamodb.js \
+  --source data/cortex.db \
+  --region us-east-1 \
+  --table cortex
+```
+
+### 4. Switch Config
+
+```yaml
+cortex:
+  adapters:
+    llm:
+      default: "aws-bedrock"
+    embedder:
+      default: "aws-bedrock"
+    store:
+      default: "aws-dynamodb"
+    blob:
+      default: "aws-s3"
+    queue:
+      default: "aws-sqs"
+```
+
+### 5. Verify
+
+```bash
+npm run doctor
+```
+
+## Migrating from Cloudflare to AWS
+
+### Store: D1 → DynamoDB
+
+1. Export D1 to SQL:
+```bash
+wrangler d1 export cortex-db --output=d1-export.sql
+```
+
+2. Convert SQL to DynamoDB item format (script needed)
+3. Batch write to DynamoDB
+
+### Blob: R2 → S3
+
+```bash
+aws s3 sync s3://r2-bucket s3://aws-bucket \
+  --endpoint-url=https://your-account.r2.cloudflarestorage.com
+```
+
+### LLM/Embedder: Workers AI → Bedrock
+
+Update config and restart. No data migration needed for LLM.
+
+### Queue: Cloudflare Queues → SQS
+
+Drain Cloudflare Queues first, then switch config.
+
+## Rollback
+
+Keep your old config as a profile:
+
+```bash
+export CORTEX_PROFILE=local
+# or
+export CORTEX_PROFILE=cloudflare
+```
+
+Switch back instantly if AWS doesn't meet your needs.
+
+## Cross-Region Migration within AWS
+
+### DynamoDB
+
+Use global tables:
+```bash
+aws dynamodb create-global-table \
+  --global-table-name cortex \
+  --replication-group RegionName=us-east-1 RegionName=eu-west-1
+```
+
+### S3
+
+Use Cross-Region Replication:
+```bash
+aws s3api put-bucket-replication \
+  --bucket source-bucket \
+  --replication-configuration file://replication.json
+```
+
+### SQS
+
+Create a queue in the new region and update config. No automatic replication.

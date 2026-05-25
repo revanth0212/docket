@@ -1,0 +1,49 @@
+---
+title: Troubleshooting
+description: Fix common Cloudflare deployment issues.
+---
+
+# Cloudflare Troubleshooting
+
+## "HTTP 401 Unauthorized"
+
+Your API token is invalid or missing permissions. Verify:
+1. Token is active in [API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+2. Token has permissions for the services you're using (D1, R2, Workers AI, Queues)
+3. Token is correctly set as `CF_API_TOKEN`
+
+## "HTTP 429 Too Many Requests"
+
+You've hit a rate limit:
+- Workers AI: Check daily neuron usage
+- D1: Check read/write quotas
+- R2: Check operation quotas
+
+Wait a few minutes or upgrade your plan.
+
+## "D1 database not found"
+
+Verify the `databaseId` in your config matches the output of:
+```bash
+wrangler d1 list
+```
+
+## "R2 bucket not found"
+
+Verify the bucket exists:
+```bash
+wrangler r2 bucket list
+```
+
+## Slow responses from Workers AI
+
+Workers AI runs at the edge closest to your account. If you're far from the edge, latency may be higher. Consider:
+- Using a model with lower latency (`@cf/meta/llama-3.1-8b-instruct` vs larger models)
+- Capping `maxTokens` to reduce generation time
+
+## "Queue not found"
+
+Verify the queue exists:
+```bash
+wrangler queues list
+```

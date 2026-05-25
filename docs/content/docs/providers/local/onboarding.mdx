@@ -1,0 +1,88 @@
+---
+title: Onboarding
+description: Get Cortex running locally from scratch.
+---
+
+# Local Onboarding
+
+## Prerequisites
+
+- Node.js 20+ (`node --version`)
+- npm 10+ (`npm --version`)
+- Ollama installed (for LLM + embeddings)
+- 500 MB free disk space
+
+## Step 1: Install
+
+```bash
+git clone https://github.com/yourusername/cortex.git
+cd cortex
+npm install
+```
+
+## Step 2: Run Setup
+
+```bash
+npm run setup
+```
+
+This interactive script will:
+1. Create `data/` directories
+2. Copy `config/config.example.yaml` to `config/config.yaml`
+3. Ask for your preferred LLM provider (Ollama, LM Studio, etc.)
+4. Write the configuration file
+
+## Step 3: Verify Prerequisites
+
+```bash
+npm run doctor
+```
+
+Checks:
+- Node.js version
+- `node_modules` present
+- Data directory writable
+- Config file exists
+- Ollama reachable
+
+## Step 4: Start Ollama
+
+```bash
+ollama pull llama3.2
+ollama pull nomic-embed-text
+ollama serve
+```
+
+## Step 5: Start Cortex
+
+```bash
+npm start
+```
+
+Visit `http://localhost:3000/health` to verify.
+
+## Hybrid Setup: LM Studio + Ollama
+
+If you prefer LM Studio for chat and Ollama for embeddings, use this config:
+
+```yaml
+cortex:
+  adapters:
+    llm:
+      default: "lm-studio"
+      providers:
+        lm-studio:
+          adapter: "@cortex/llm-openai-compatible"
+          config:
+            baseUrl: "http://localhost:1234/v1"
+            model: "local-model"
+    embedder:
+      default: "ollama"
+      providers:
+        ollama:
+          adapter: "@cortex/embedder-ollama"
+          config:
+            baseUrl: "http://localhost:11434"
+            model: "nomic-embed-text"
+            dimensions: 768
+```

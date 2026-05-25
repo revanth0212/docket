@@ -1,0 +1,5 @@
+{
+  "title": "Cloud Providers",
+  "description": "Provider-specific guides for running Cortex on Local, Cloudflare, or AWS infrastructure.",
+  "pages": ["index", "local", "cloudflare", "aws"]
+}

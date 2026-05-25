@@ -1,0 +1,64 @@
+---
+title: Migration
+description: Move your local Cortex data to a cloud provider.
+---
+
+# Local-to-Cloud Migration
+
+## When to Migrate
+
+- Your SQLite database is growing beyond comfortable local limits (>10 GB)
+- You need multi-device access
+- You want automated backups and redundancy
+- You're moving from a laptop to a VPS or edge deployment
+
+## Migration Steps
+
+### 1. Export Data
+
+```bash
+# Export memories as JSONL
+cortex export --store=sqlite --format=jsonl > memories.jsonl
+
+# Export blobs
+cortex export --blob=filesystem --target=./blob-export
+```
+
+### 2. Prepare Cloud Config
+
+Create `config/profiles/hosted.yaml` with your cloud provider settings.
+
+### 3. Import Data
+
+```bash
+# Switch to hosted profile
+export CORTEX_PROFILE=hosted
+
+# Import memories
+cortex import --store=cloudflare-d1 --format=jsonl < memories.jsonl
+
+# Import blobs
+cortex import --blob=r2 --source=./blob-export
+```
+
+### 4. Verify
+
+```bash
+cortex doctor --profile=hosted
+curl https://your-hosted-instance/health
+```
+
+### 5. Cutover
+
+Update your clients to point to the hosted instance. Keep local as backup until verified.
+
+## Rollback
+
+If something goes wrong:
+
+```bash
+export CORTEX_PROFILE=local
+npm start
+```
+
+Your local data is untouched during migration.

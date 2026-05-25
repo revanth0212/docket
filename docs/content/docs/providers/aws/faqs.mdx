@@ -1,0 +1,60 @@
+---
+title: FAQs
+description: Frequently asked questions about AWS deployment.
+---
+
+# AWS FAQs
+
+## How much does AWS cost for Cortex?
+
+For a personal deployment:
+- Bedrock: ~$0.003 per 1K input tokens, ~$0.015 per 1K output tokens (Claude 3.5 Sonnet)
+- DynamoDB: Free tier covers 25 GB + 25 RCU/WCU
+- S3: Free tier covers 5 GB + 20K GET requests
+- SQS: Free tier covers 1M requests
+
+Estimate: $5-20/month for light personal use. Scale with usage.
+
+## Can I use IAM roles instead of access keys?
+
+Yes. On EC2, ECS, or Lambda, the AWS SDK automatically uses the instance/execution role. Omit `accessKeyId` and `secretAccessKey` from config.
+
+## Does DynamoDB support vector search?
+
+Not natively. The DynamoDB adapter falls back to in-memory cosine similarity. For native vector search, use:
+- DynamoDB with OpenSearch Service
+- Postgres with pgvector (RDS)
+- Pinecone or Weaviate
+
+## Can I use Bedrock in regions other than us-east-1?
+
+Yes, but model availability varies. Check the [Bedrock region list](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-regions.html).
+
+## Is S3 egress expensive?
+
+Yes — $0.09/GB for standard egress. For data-heavy workloads:
+- Use CloudFront in front of S3 ($0.085/GB but cached)
+- Consider Cloudflare R2 for zero egress
+- Enable S3 Transfer Acceleration for long-distance transfers
+
+## Can I mix AWS and local adapters?
+
+Yes. For example, use Bedrock for LLM but keep SQLite locally:
+
+```yaml
+cortex:
+  adapters:
+    llm:
+      default: "aws-bedrock"
+    embedder:
+      default: "aws-bedrock"
+    store:
+      default: "sqlite"  # local
+```
+
+## How do I secure my AWS credentials?
+
+1. Use IAM roles on EC2/ECS/Lambda (no hardcoded keys)
+2. Use AWS Secrets Manager for credentials
+3. Rotate access keys every 90 days
+4. Enable CloudTrail for API audit logging

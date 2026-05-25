@@ -1,0 +1,43 @@
+---
+title: FAQs
+description: Frequently asked questions about Cloudflare deployment.
+---
+
+# Cloudflare FAQs
+
+## Is Cloudflare D1 fast enough?
+
+For personal and small-team use, yes. D1 has ~50ms read latency from the edge. Writes are batched and replicated. For high-throughput workloads, consider AWS DynamoDB or Postgres.
+
+## Does R2 charge for egress?
+
+No — R2 has zero egress fees. This is a major advantage over AWS S3 for data-heavy workloads.
+
+## Can I use Cloudflare Workers to host Cortex itself?
+
+Not directly. Cortex is a Node.js server. You can deploy it on a VPS or use Cloudflare's Docker hosting. Workers can act as a lightweight proxy or cache layer in front of Cortex.
+
+## What if I exceed Workers AI free tier?
+
+You'll receive an HTTP 429 error. Cortex will retry with exponential backoff. Upgrade to Workers AI paid tier for higher limits.
+
+## Can I mix Cloudflare and local adapters?
+
+Yes. For example, use Cloudflare Workers AI for LLM/embedder but keep SQLite locally for storage:
+
+```yaml
+cortex:
+  adapters:
+    llm:
+      default: "cloudflare-workers-ai"
+    embedder:
+      default: "cloudflare-workers-ai"
+    store:
+      default: "sqlite"  # local
+```
+
+## Is my data encrypted?
+
+- D1: Encrypted at rest by Cloudflare
+- R2: Encrypted at rest by Cloudflare
+- In transit: All Cloudflare APIs use TLS

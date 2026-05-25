@@ -1,0 +1,72 @@
+---
+title: Maintenance
+description: Keep your Cloudflare Cortex deployment healthy.
+---
+
+# Cloudflare Maintenance
+
+## Monitoring
+
+### D1 Metrics
+
+Check the D1 dashboard for:
+- Query volume
+- Error rates
+- Storage size
+
+### R2 Metrics
+
+Monitor:
+- Class A / Class B operations
+- Egress bandwidth
+- Object count
+
+### Workers AI Limits
+
+Track daily neuron usage:
+```bash
+curl -H "Authorization: Bearer $CF_API_TOKEN" \
+  "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/ai/usage"
+```
+
+## Scaling
+
+### D1
+
+D1 automatically scales reads. For heavy write loads:
+- Batch writes where possible
+- Use transactions for related operations
+- Consider sharding across multiple D1 databases
+
+### R2
+
+R2 has no storage limit. Monitor operation counts:
+- List operations are expensive — cache directory listings
+- Use presigned URLs for direct client access
+
+## Cost Control
+
+| Service | Paid Tier Trigger |
+|---------|-------------------|
+| Workers AI | >10,000 neurons/day |
+| D1 | >5M reads/day or >100K writes/day |
+| R2 | >10M Class A ops/month |
+| Queues | >1M ops/month |
+
+Set up billing alerts in the Cloudflare dashboard.
+
+## Backups
+
+### D1
+
+Export snapshots:
+```bash
+wrangler d1 export cortex-db --output=./backup.sql
+```
+
+### R2
+
+Use `rclone` or `aws s3 sync`:
+```bash
+aws s3 sync s3://cortex-blobs ./r2-backup --endpoint-url=https://$CF_ACCOUNT_ID.r2.cloudflarestorage.com
+```

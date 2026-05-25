@@ -1,0 +1,59 @@
+---
+title: Maintenance
+description: Keep your local Cortex instance healthy.
+---
+
+# Local Maintenance
+
+## Backups
+
+### SQLite Database
+
+The database lives at `./data/cortex.db`. Back it up regularly:
+
+```bash
+# Create a timestamped backup
+cp data/cortex.db "data/cortex-backup-$(date +%Y%m%d).db"
+```
+
+### Blob Storage
+
+Blobs are stored in `./data/blobs/`. Sync to an external drive or cloud:
+
+```bash
+rsync -av data/blobs/ /mnt/external/cortex-blobs/
+```
+
+## Updates
+
+```bash
+git pull origin main
+npm install
+npm run migrate
+npm start
+```
+
+## Monitoring
+
+### Health Endpoint
+
+```bash
+curl http://localhost:3000/health
+curl http://localhost:3000/admin/health
+```
+
+### Logs
+
+Cortex uses Pino. Logs are structured JSON by default. Use `pino-pretty` for readability:
+
+```bash
+npm start | npx pino-pretty
+```
+
+## Disk Space
+
+SQLite with WAL mode can grow. Vacuum periodically:
+
+```bash
+sqlite3 data/cortex.db "VACUUM;"
+```

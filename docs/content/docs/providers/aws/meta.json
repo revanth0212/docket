@@ -1,0 +1,5 @@
+{
+  "title": "AWS",
+  "description": "Run Cortex on AWS with Bedrock, DynamoDB, S3, and SQS.",
+  "pages": ["index", "onboarding", "maintenance", "faqs", "troubleshooting", "migration"]
+}

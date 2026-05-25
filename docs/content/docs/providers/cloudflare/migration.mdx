@@ -1,0 +1,90 @@
+---
+title: Migration
+description: Migrate to or from Cloudflare.
+---
+
+# Cloudflare Migration
+
+## Migrating from Local to Cloudflare
+
+### 1. Export Local Data
+
+```bash
+# Export SQLite to SQL
+sqlite3 data/cortex.db ".dump" > local-export.sql
+
+# Export blobs
+cp -r data/blobs ./blob-export
+```
+
+### 2. Import to D1
+
+```bash
+# D1 supports standard SQLite SQL
+wrangler d1 execute cortex-db --file=local-export.sql
+```
+
+### 3. Import to R2
+
+```bash
+aws s3 sync ./blob-export s3://cortex-blobs \
+  --endpoint-url=https://$CF_ACCOUNT_ID.r2.cloudflarestorage.com
+```
+
+### 4. Switch Config
+
+```yaml
+cortex:
+  adapters:
+    llm:
+      default: "cloudflare-workers-ai"
+    embedder:
+      default: "cloudflare-workers-ai"
+    store:
+      default: "cloudflare-d1"
+    blob:
+      default: "cloudflare-r2"
+    queue:
+      default: "cloudflare-queues"
+```
+
+### 5. Verify
+
+```bash
+npm run doctor
+```
+
+## Migrating from AWS to Cloudflare
+
+### Store: DynamoDB → D1
+
+1. Export DynamoDB to JSON:
+```bash
+aws dynamodb scan --table-name cortex > dynamodb-export.json
+```
+
+2. Convert to SQLite insert statements (script needed)
+3. Import to D1 via `wrangler d1 execute`
+
+### Blob: S3 → R2
+
+```bash
+aws s3 sync s3://aws-bucket s3://r2-bucket \
+  --endpoint-url=https://$CF_ACCOUNT_ID.r2.cloudflarestorage.com
+```
+
+### Queue: SQS → Cloudflare Queues
+
+Drain SQS first, then switch config. There's no direct migration path — process remaining SQS messages before cutover.
+
+## Rollback
+
+Keep your old config as a profile:
+
+```bash
+export CORTEX_PROFILE=local
+# or
+export CORTEX_PROFILE=aws
+```
+
+Switch back instantly if Cloudflare doesn't meet your needs.

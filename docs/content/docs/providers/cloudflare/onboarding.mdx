@@ -1,0 +1,130 @@
+---
+title: Onboarding
+description: Deploy Cortex on Cloudflare from scratch.
+---
+
+# Cloudflare Onboarding
+
+## Prerequisites
+
+- Cloudflare account (free tier works)
+- Cloudflare API token with permissions for D1, R2, Workers AI, and Queues
+- Node.js 20+ and npm
+
+## Step 1: Create Cloudflare Resources
+
+### D1 Database
+
+```bash
+# Using wrangler (install via npm i -g wrangler)
+wrangler d1 create cortex-db
+# Note the database ID
+```
+
+### R2 Bucket
+
+```bash
+wrangler r2 bucket create cortex-blobs
+```
+
+### Queue
+
+```bash
+wrangler queues create cortex-jobs
+```
+
+### Workers AI
+
+No setup needed — enabled by default on your account.
+
+## Step 2: Get API Token
+
+1. Go to [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+2. Create a token with these permissions:
+   - Account: Workers Scripts:Edit
+   - Account: Workers AI:Read
+   - Account: D1:Edit
+   - Account: R2:Edit
+   - Account: Queues:Edit
+3. Copy the token
+
+## Step 3: Configure Cortex
+
+Create `config/config.yaml`:
+
+```yaml
+cortex:
+  adapters:
+    llm:
+      default: "cloudflare-workers-ai"
+      providers:
+        cloudflare-workers-ai:
+          adapter: "@cortex/llm-cloudflare-workers-ai"
+          config:
+            accountId: "${CF_ACCOUNT_ID}"
+            apiToken: "${CF_API_TOKEN}"
+            model: "@cf/meta/llama-3.1-8b-instruct"
+
+    embedder:
+      default: "cloudflare-workers-ai"
+      providers:
+        cloudflare-workers-ai:
+          adapter: "@cortex/embedder-cloudflare-workers-ai"
+          config:
+            accountId: "${CF_ACCOUNT_ID}"
+            apiToken: "${CF_API_TOKEN}"
+            model: "@cf/baai/bge-base-en-v1.5"
+            dimensions: 768
+
+    store:
+      default: "cloudflare-d1"
+      providers:
+        cloudflare-d1:
+          adapter: "@cortex/store-cloudflare-d1"
+          config:
+            accountId: "${CF_ACCOUNT_ID}"
+            databaseId: "${CF_D1_DATABASE_ID}"
+            apiToken: "${CF_API_TOKEN}"
+
+    blob:
+      default: "cloudflare-r2"
+      providers:
+        cloudflare-r2:
+          adapter: "@cortex/blob-s3"
+          config:
+            endpoint: "https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
+            bucket: "cortex-blobs"
+            accessKeyId: "${R2_ACCESS_KEY_ID}"
+            secretAccessKey: "${R2_SECRET_ACCESS_KEY}"
+            region: "auto"
+            forcePathStyle: true
+
+    queue:
+      default: "cloudflare-queues"
+      providers:
+        cloudflare-queues:
+          adapter: "@cortex/queue-cloudflare"
+          config:
+            accountId: "${CF_ACCOUNT_ID}"
+            queueName: "cortex-jobs"
+            apiToken: "${CF_API_TOKEN}"
+```
+
+## Step 4: Set Environment Variables
+
+```bash
+export CF_ACCOUNT_ID=your-account-id
+export CF_API_TOKEN=your-api-token
+export CF_D1_DATABASE_ID=your-d1-database-id
+export R2_ACCESS_KEY_ID=your-r2-key-id
+export R2_SECRET_ACCESS_KEY=your-r2-secret
+```
+
+## Step 5: Run Cortex
+
+```bash
+npm install
+npm start
+```
+
+The server will initialize all Cloudflare adapters and verify connectivity.

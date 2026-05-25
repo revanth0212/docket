@@ -1,0 +1,31 @@
+---
+title: Cloud Providers
+description: Choose your infrastructure and follow the provider-specific path.
+---
+
+# Cloud Providers
+
+Cortex is infrastructure-agnostic. Whether you run on your laptop, Cloudflare's edge, or AWS, the experience is the same. Pick your provider and follow the tailored guide.
+
+## Available Providers
+
+| Provider | Best For | Adapters Available |
+|----------|----------|-------------------|
+| **[Local](/docs/providers/local)** | Development, privacy-first, self-hosted | Ollama, LM Studio, SQLite, Filesystem, In-memory queue |
+| **[Cloudflare](/docs/providers/cloudflare)** | Edge deployment, global low-latency, generous free tier | Workers AI (LLM + embedder), D1 (store), R2 (blob), Queues |
+| **[AWS](/docs/providers/aws)** | Enterprise scale, mature ecosystem, compliance | Bedrock (LLM + embedder), DynamoDB (store), S3 (blob), SQS |
+
+## Provider Presets (Future)
+
+Instead of configuring 5 adapters individually, you will be able to set a single provider preset:
+
+```yaml
+cortex:
+  provider: "cloudflare"  # auto-resolves all 5 adapters
+```
+
+This maps to the provider's native services and injects the correct adapter configs automatically.
+
+## Switching Providers
+
+See the [Migration Guides](/docs/providers/local/migration) for moving data between providers.

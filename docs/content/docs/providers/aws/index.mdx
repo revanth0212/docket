@@ -1,0 +1,44 @@
+---
+title: AWS Provider
+description: Deploy Cortex on AWS with enterprise-grade infrastructure.
+---
+
+# AWS Provider
+
+AWS offers the most mature ecosystem for production deployments. Use Bedrock for LLM/embeddings, DynamoDB for storage, S3 for blobs, and SQS for queues.
+
+## What You Get
+
+| Adapter | Implementation | AWS Service |
+|---------|---------------|-------------|
+| LLM | AWS Bedrock | Claude, Llama, Mistral |
+| Embedder | AWS Bedrock | Titan Embeddings |
+| Store | AWS DynamoDB | NoSQL key-value store |
+| Blob | AWS S3 | Object storage |
+| Queue | AWS SQS | Distributed message queue |
+
+## Architecture
+
+```
+User → AWS Region → Bedrock (LLM/Embedder)
+              → DynamoDB (Store)
+              → S3 (Blob)
+              → SQS (Background jobs)
+```
+
+## Free Tier Limits
+
+| Service | Limit |
+|---------|-------|
+| Bedrock | Pay-per-use, no free tier |
+| DynamoDB | 25 GB storage, 25 WCU, 25 RCU |
+| S3 | 5 GB storage, 20,000 GET, 2,000 PUT |
+| SQS | 1M requests/month |
+
+## Next Steps
+
+- [Onboarding](/docs/providers/aws/onboarding) — IAM, resources, config, deploy
+- [Maintenance](/docs/providers/aws/maintenance) — CloudWatch, scaling, cost control
+- [FAQs](/docs/providers/aws/faqs) — Common questions
+- [Troubleshooting](/docs/providers/aws/troubleshooting) — Fix issues
+- [Migration](/docs/providers/aws/migration) — Move from local or Cloudflare

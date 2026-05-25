@@ -1,0 +1,67 @@
+---
+title: Troubleshooting
+description: Fix common AWS deployment issues.
+---
+
+# AWS Troubleshooting
+
+## "Access Denied" on Bedrock
+
+1. Verify model access in the [Bedrock Console](https://console.aws.amazon.com/bedrock)
+2. Check IAM policy includes `bedrock:InvokeModel`:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["bedrock:InvokeModel"],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+3. Ensure the model ID in config matches an accessible model
+
+## "ResourceNotFoundException" on DynamoDB
+
+The table doesn't exist or is in a different region:
+```bash
+aws dynamodb describe-table --table-name cortex --region us-east-1
+```
+
+## "Queue does not exist" on SQS
+
+Verify the queue URL:
+```bash
+aws sqs get-queue-url --queue-name cortex-jobs
+```
+
+## Slow Bedrock responses
+
+- Use a model in your closest region
+- Reduce `maxTokens` to limit generation time
+- Enable response streaming (future feature)
+
+## DynamoDB throttling
+
+You're exceeding provisioned capacity:
+1. Switch to on-demand billing
+2. Or increase provisioned RCU/WCU
+3. Or add exponential backoff in your client
+
+## S3 "NoSuchBucket"
+
+Bucket name is globally unique. If you get this error:
+1. Check the exact bucket name in config
+2. Verify the bucket exists: `aws s3 ls s3://your-bucket`
+3. Ensure the region in config matches the bucket region
+
+## High latency from outside AWS
+
+If users are far from your AWS region:
+1. Deploy Cortex closer to users (multi-region)
+2. Use CloudFront for S3 content
+3. Consider Cloudflare R2 for zero-egress blob storage

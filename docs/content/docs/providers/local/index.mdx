@@ -1,0 +1,36 @@
+---
+title: Local Provider
+description: Run Cortex entirely on your local machine.
+---
+
+# Local Provider
+
+The local provider is the default and recommended starting point. All data stays on your machine. No cloud accounts, no API keys, no egress costs.
+
+## What You Get
+
+| Adapter | Implementation | External Dependency |
+|---------|---------------|---------------------|
+| LLM | Ollama or LM Studio | Yes (local) |
+| Embedder | Ollama | Yes (local) |
+| Store | SQLite | No |
+| Blob | Filesystem | No |
+| Queue | In-memory | No |
+
+## Quick Start
+
+```bash
+git clone https://github.com/yourusername/cortex.git
+cd cortex && npm install
+npm run setup
+npm run doctor
+npm start
+```
+
+## Next Steps
+
+- [Onboarding](/docs/providers/local/onboarding) — Full setup walkthrough
+- [Maintenance](/docs/providers/local/maintenance) — Backups, updates, monitoring
+- [FAQs](/docs/providers/local/faqs) — Common questions
+- [Troubleshooting](/docs/providers/local/troubleshooting) — Fix common issues
+- [Migration](/docs/providers/local/migration) — Move to a cloud provider later

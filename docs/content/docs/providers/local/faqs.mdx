@@ -1,0 +1,38 @@
+---
+title: FAQs
+description: Frequently asked questions about local deployment.
+---
+
+# Local FAQs
+
+## Can I run Cortex without Ollama?
+
+Yes. Use LM Studio, OpenAI, Groq, or any OpenAI-compatible provider. Update `config/config.yaml` accordingly.
+
+## How much disk space does SQLite use?
+
+Base install: ~10 MB. Each memory record: ~1-5 KB. Vector embeddings: ~3 KB per record (768 dims). A typical personal brain with 10,000 memories: ~50-100 MB.
+
+## Is my data encrypted?
+
+At rest: SQLite does not encrypt by default. For encryption, use SQLCipher or an encrypted filesystem.
+In transit: Only relevant if you expose Cortex over a network. Use a reverse proxy with TLS (Caddy, nginx).
+
+## Can I run Cortex on a Raspberry Pi?
+
+Yes. Ollama runs on ARM64. Use a lightweight model like `llama3.2:1b` for the Pi.
+
+## What ports does Cortex use?
+
+- `3000` — Unified server (data + control plane)
+- `3001` — Control plane only (split mode)
+- `11434` — Ollama
+- `1234` — LM Studio
+
+## How do I reset everything?
+
+```bash
+rm -rf data/
+rm config/config.yaml
+npm run setup
+```
