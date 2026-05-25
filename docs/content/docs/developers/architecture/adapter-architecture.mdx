@@ -53,57 +53,48 @@ If we bundled these into one "database adapter," you couldn't scale them indepen
 
 Every adapter goes through the same lifecycle, enforced by the `AdapterRegistry`:
 
-```
-User Config (YAML)
-       │
-       ▼
-┌──────────────────┐
-│ AdapterRegistry  │
-│ .resolveAdapter  │  ──▶  @cortex/store-sqlite  →  src/adapters/store/sqlite/index.js
-│   Path()         │
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│ require()        │  ──▶  Load module, find class
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│ new AdapterClass │  ──▶  constructor calls validateConfig()
-│ (config)         │
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│ .initialize()    │  ──▶  Connect to DB, verify API token, run migrations
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│ .health()        │  ──▶  Ping the service. Fail fast if unreachable.
-└────────┬─────────┘
-         │
-         ▼
-   ┌──────────┐
-   │  ACTIVE  │  ◄────  Adapter is ready. Core services can call it.
-   └──────────┘
+```mermaid
+flowchart TD
+    A["User Config (YAML)"] --> B["AdapterRegistry.resolveAdapterPath()"]
+    B -->|"resolve path"| C["require()"]
+    C -->|"load module"| D["new AdapterClass(config)"]
+    D -->|"validateConfig()"| E[".initialize()"]
+    E -->|"connect / migrate"| F[".health()"]
+    F -->|"ping"| G[ACTIVE]
+    G -->|"ready"| H["Core Services"]
+
+    classDef default fill:#1e1e2e,stroke:#45475a,stroke-width:2px,color:#cdd6f4,rx:4,ry:4
+    classDef config stroke:#89b4fa,stroke-width:3px
+    classDef step stroke:#cba6f7,stroke-width:2px
+    classDef success stroke:#a6e3a1,stroke-width:3px,color:#a6e3a1
+
+    class A config
+    class B,C,D,E,F step
+    class G,H success
 ```
 
 ### Path Resolution
 
 The registry resolves adapter names using three strategies:
 
-```javascript
-// 1. @cortex/ prefix → local src/adapters path
-"@cortex/store-sqlite"     → src/adapters/store/sqlite/index.js
-"@cortex/llm-ollama"       → src/adapters/llm/ollama/index.js
+```mermaid
+flowchart LR
+    A["Adapter Name"] --> B{"Prefix?"}
+    B -->|"@cortex/"| C["Local src/adapters path"]
+    B -->|"./ or ../"| D["Direct require"]
+    B -->|"everything else"| E["npm package"]
+    C -->|"@cortex/store-sqlite"| F["src/adapters/store/sqlite/index.js"]
+    D -->|"./my-custom-adapter"| G["/full/path/to/my-custom-adapter"]
+    E -->|"@myorg/cortex-llm-groq"| H["node_modules/@myorg/cortex-llm-groq"]
 
-// 2. Relative path → direct require
-"./my-custom-adapter"      → /full/path/to/my-custom-adapter
+    classDef default fill:#1e1e2e,stroke:#45475a,stroke-width:2px,color:#cdd6f4,rx:4,ry:4
+    classDef input stroke:#89b4fa,stroke-width:3px
+    classDef decision stroke:#f9e2af,stroke-width:2px
+    classDef output stroke:#a6e3a1,stroke-width:2px
 
-// 3. Everything else → npm package
-"@myorg/cortex-llm-groq"   → node_modules/@myorg/cortex-llm-groq
+    class A input
+    class B decision
+    class C,D,E,F,G,H output
 ```
 
 This means you can develop an adapter inside the repo, then publish it to npm without changing the config structure.
@@ -112,9 +103,27 @@ This means you can develop an adapter inside the repo, then publish it to npm wi
 
 Before initialization, the registry verifies three things:
 
-1. **Class exists** — The module exports a class.
-2. **Metadata exists** — `AdapterClass.metadata` returns `{ name, version, capabilities, cortexCompatibility }`.
-3. **Health passes** — `initialize()` completes and `health()` returns `{ ok: true }`.
+```mermaid
+flowchart TD
+    A["Load Module"] --> B{"Class exists?"}
+    B -->|No| X["Exit: Failed to load adapter"]
+    B -->|Yes| C{"Metadata exists?"}
+    C -->|No| X
+    C -->|Yes| D{"initialize() completes?"}
+    D -->|No| X
+    D -->|Yes| E{"health() ok?"}
+    E -->|No| X
+    E -->|Yes| G["Adapter ACTIVE"]
+
+    classDef default fill:#1e1e2e,stroke:#45475a,stroke-width:2px,color:#cdd6f4,rx:4,ry:4
+    classDef check stroke:#f9e2af,stroke-width:2px
+    classDef success stroke:#a6e3a1,stroke-width:3px,color:#a6e3a1
+    classDef fail stroke:#f38ba8,stroke-width:3px,color:#f38ba8
+
+    class B,C,D,E check
+    class G success
+    class X fail
+```
 
 If any gate fails, the server exits with a clear error:
 

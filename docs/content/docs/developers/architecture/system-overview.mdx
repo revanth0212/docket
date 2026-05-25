@@ -9,161 +9,96 @@ Cortex is a modular **Second Brain as a Service**. At its heart are five swappab
 
 ## High-level layout
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              YOUR UI                                    │
-│   (Web app, mobile, CLI, VS Code extension, MCP server, voice agent)    │
-└─────────────────────────────────┬───────────────────────────────────────┘
-                                  │ HTTP / REST
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           CORTEX CORE                                   │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
-│  │  Control Plane  │  │   Data Plane    │  │    Shared Services      │  │
-│  │   (Port 3001)   │  │   (Port 3000)   │  │                         │  │
-│  │                 │  │                 │  │  ┌───────────────────┐  │  │
-│  │  /admin/config  │  │  /ingest        │  │  │   Config Loader   │  │  │
-│  │  /admin/plugins │  │  /query         │  │  │   (YAML + env)    │  │  │
-│  │  /admin/rbac    │  │  /memories      │  │  └───────────────────┘  │  │
-│  │  /admin/health  │  │  /health        │  │  ┌───────────────────┐  │  │
-│  │                 │  │                 │  │  │   Adapter Registry│  │  │
-│  └─────────────────┘  └─────────────────┘  │  │   (load + cache)  │  │  │
-│           │                    │            │  └───────────────────┘  │  │
-│           └────────────────────┼────────────┘                         │  │
-│                                │                                      │  │
-│                                ▼                                      │  │
-│  ┌─────────────────────────────────────────────────────────────────┐  │  │
-│  │              ADAPTER LAYER (5 frozen interfaces)                │  │  │
-│  │  ┌────────┐  ┌──────────┐  ┌────────┐  ┌──────┐  ┌──────────┐  │  │  │
-│  │  │  LLM   │  │ Embedder │  │ Store  │  │ Blob │  │  Queue   │  │  │  │
-│  │  │Ollama  │  │ Ollama   │  │SQLite  │  │FS    │  │In-Memory │  │  │  │
-│  │  │OpenAI  │  │ Cohere   │  │Postgres│  │S3    │  │ Redis    │  │  │  │
-│  │  │Groq    │  │ OpenAI   │  │Qdrant  │  │R2    │  │ Bull     │  │  │  │
-│  │  └────────┘  └──────────┘  └────────┘  └──────┘  └──────────┘  │  │  │
-│  └─────────────────────────────────────────────────────────────────┘  │  │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    UI(["YOUR UI\nWeb app · Mobile · CLI · MCP server · Voice agent"])
+
+    subgraph CortexCore ["CORTEX CORE"]
+        CP["Control Plane\nPort 3001 · /admin/*"]
+        DP["Data Plane\nPort 3000 · /ingest /query"]
+        Shared["Shared Services\nConfig Loader · Adapter Registry"]
+    end
+
+    subgraph Adapters ["ADAPTER LAYER — 5 frozen interfaces"]
+        LLM["LLM\nOllama · OpenAI · Groq"]
+        Embedder["Embedder\nOllama · Cohere · OpenAI"]
+        Store["Store\nSQLite · Postgres · Qdrant"]
+        Blob["Blob\nFilesystem · S3 · R2"]
+        Queue["Queue\nIn-Memory · Redis · Bull"]
+    end
+
+    UI --"HTTP / REST"--> DP
+    CP --> Shared
+    DP --> CP
+    Shared --> Adapters
+    DP --> Adapters
+
+    classDef default fill:#1e1e2e,stroke:#45475a,stroke-width:2px,color:#cdd6f4,rx:4,ry:4
+    classDef ui stroke:#89b4fa,stroke-width:3px
+    classDef plane stroke:#cba6f7,stroke-width:2px
+    classDef shared stroke:#f38ba8,stroke-width:2px
+    classDef adapter stroke:#fab387,stroke-width:2px
+
+    class UI ui
+    class CP,DP plane
+    class Shared shared
+    class LLM,Embedder,Store,Blob,Queue adapter
 ```
 
 ## Ingestion pipeline
 
 When you POST a file to `/ingest`, Cortex runs it through a multi-stage pipeline:
 
-```
-   User Upload
-        │
-        ▼
-┌───────────────┐
-│  /ingest API  │◄───── multipart parser, size limits, auth principal
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│  BlobAdapter  │◄───── store raw file (returns rawRef key)
-│  .put()       │
-└───────┬───────┘
-        │ rawRef
-        ▼
-┌───────────────┐
-│  QueueAdapter │◄───── enqueue "ingest" job (async by default)
-│  .enqueue()   │
-└───────┬───────┘
-        │
-        ▼
-┌─────────────────────────┐
-│   Ingestion Worker      │
-│   (QueueAdapter worker) │
-└───────┬─────────────────┘
-        │
-        ▼
-┌─────────────────────────┐
-│   Text Extraction       │◄───── PDF, image OCR, audio transcription
-│   (content-type aware)  │
-└───────┬─────────────────┘
-        │ extractedText
-        ▼
-┌─────────────────────────┐
-│   Sector Classification │◄───── LLM classifies into episodic / semantic /
-│   (optional, rich mode) │        procedural / emotional / reflective
-└───────┬─────────────────┘
-        │ sector + summary
-        ▼
-┌─────────────────────────┐
-│   EmbedderAdapter       │◄───── generate vector embedding
-│   .embed()              │
-└───────┬─────────────────┘
-        │ embedding
-        ▼
-┌─────────────────────────┐
-│   StoreAdapter          │◄───── persist memory record + vector
-│   .createMemory()       │        + access policy + temporal bounds
-└───────┬─────────────────┘
-        │
-        ▼
-┌─────────────────────────┐
-│   Relation Discovery    │◄───── link to related memories (graph edges)
-│   (optional, rich mode) │
-└─────────────────────────┘
-        │
-        ▼
-   Response to user
-   { id, rawRef, sector, salience, createdAt }
+```mermaid
+flowchart TD
+    A["User Upload"] --> B["/ingest API"]
+    B -->|"parse & validate"| C["BlobAdapter.put()"]
+    C -->|"rawRef"| D["QueueAdapter.enqueue()"]
+    D -->|"async job"| E["Ingestion Worker"]
+    E -->|"extract"| F["Text Extraction"]
+    F -->|"text"| G["Sector Classification"]
+    G -->|"sector + summary"| H["EmbedderAdapter.embed()"]
+    H -->|"embedding"| I["StoreAdapter.createMemory()"]
+    I -->|"persist"| J["Relation Discovery"]
+    J -->|"link"| K["Response: { id, rawRef, sector, salience }"]
+
+    classDef default fill:#1e1e2e,stroke:#45475a,stroke-width:2px,color:#cdd6f4,rx:4,ry:4
+    classDef input stroke:#89b4fa,stroke-width:3px
+    classDef process stroke:#cba6f7,stroke-width:2px
+    classDef adapter stroke:#fab387,stroke-width:2px
+    classDef success stroke:#a6e3a1,stroke-width:3px,color:#a6e3a1
+
+    class A input
+    class B,E,F,G process
+    class C,D,H,I,J adapter
+    class K success
 ```
 
 ## Query pipeline
 
 When you POST a question to `/query`, Cortex performs composite recall:
 
-```
-   User Question
-        │
-        ▼
-┌───────────────┐
-│  /query API   │◄───── parse request: question, sector filter,
-└───────┬───────┘        temporal constraints, principal (RBAC)
-        │
-        ▼
-┌─────────────────────────┐
-│   EmbedderAdapter       │◄───── embed the question into query vector
-│   .embed()              │
-└───────┬─────────────────┘
-        │ queryEmbedding
-        ▼
-┌─────────────────────────┐
-├─  StoreAdapter          │◄───── vector search: top-k candidates
-│   .vectorSearch()       │
-└───────┬─────────────────┘
-        │ candidates[]
-        ▼
-┌─────────────────────────┐
-├─  StoreAdapter          │◄───── graph traversal: expand via relations
-│   .getMemoryGraph()     │        (optional, rich mode)
-└───────┬─────────────────┘
-        │ expanded[]
-        ▼
-┌─────────────────────────┐
-│   RecallEngine          │◄───── composite scoring:
-│   (composite ranker)    │        · vector similarity (40%)
-│                         │        · graph proximity (20%)
-│                         │        · salience score   (15%)
-│                         │        · recency boost    (15%)
-│                         │        · temporal match   (10%)
-└───────┬─────────────────┘
-        │ ranked memories[]
-        ▼
-┌─────────────────────────┐
-│   RBAC Filter           │◄───── drop memories the principal cannot read
-│   (access policy check) │
-└───────┬─────────────────┘
-        │ authorized[]
-        ▼
-┌─────────────────────────┐
-│   LLMAdapter            │◄───── RAG prompt: question + memory context
-│   .chat()               │        → generate natural language answer
-└───────┬─────────────────┘
-        │
-        ▼
-   Response to user
-   { answer, sources[], trace[] }
+```mermaid
+flowchart TD
+    A["User Question"] --> B["/query API"]
+    B -->|"parse"| C["EmbedderAdapter.embed()"]
+    C -->|"embedding"| D["StoreAdapter.vectorSearch()"]
+    D -->|"candidates"| E["StoreAdapter.getMemoryGraph()"]
+    E -->|"expanded"| F["RecallEngine"]
+    F -->|"ranked"| G["RBAC Filter"]
+    G -->|"authorized"| H["LLMAdapter.chat()"]
+    H -->|"answer"| I["Response: { answer, sources[], trace[] }"]
+
+    classDef default fill:#1e1e2e,stroke:#45475a,stroke-width:2px,color:#cdd6f4,rx:4,ry:4
+    classDef input stroke:#89b4fa,stroke-width:3px
+    classDef process stroke:#cba6f7,stroke-width:2px
+    classDef adapter stroke:#fab387,stroke-width:2px
+    classDef success stroke:#a6e3a1,stroke-width:3px,color:#a6e3a1
+
+    class A input
+    class B,E,F,G process
+    class C,D,H adapter
+    class I success
 ```
 
 ## Memory model (rich mode)
@@ -208,39 +143,42 @@ In **rich mode**, memories are not flat documents. They are cognitive objects:
 
 ## Data flow diagram
 
-```
-┌──────────┐     ┌─────────────┐     ┌─────────────────────────────┐
-│  Client  │────▶│  Data Plane │────▶│  Core Services              │
-│          │     │  Routes     │     │  (Ingestion / Query /       │
-│          │◄────│             │◄────│   Memory / Decay)           │
-└──────────┘     └──────┬──────┘     └─────────────┬───────────────┘
-                        │                          │
-                        │                          ▼
-                        │                ┌─────────────────┐
-                        │                │  Adapter        │
-                        │                │  Registry       │
-                        │                │  (read-only     │
-                        │                │   snapshot)     │
-                        │                └────────┬────────┘
-                        │                         │
-                        ▼                         ▼
-               ┌─────────────────────────────────────────────┐
-               │              ADAPTER LAYER                  │
-               │  ┌────────┐ ┌────────┐ ┌──────┐ ┌────────┐ │
-               │  │ Store  │ │ Blob   │ │ LLM  │ │ Embed  │ │
-               │  │SQLite  │ │FileSys │ │Ollama│ │Ollama  │ │
-               │  └────────┘ └────────┘ └──────┘ └────────┘ │
-               └─────────────────────────────────────────────┘
-                                      │
-                                      ▼
-               ┌─────────────────────────────────────────────┐
-               │           SHARED PERSISTENCE                │
-               │  ┌─────────────┐      ┌─────────────────┐   │
-               │  │  SQLite DB  │      │  In-Memory      │   │
-               │  │  (store +   │      │  Queue          │   │
-               │  │   vectors)  │      │  (job scheduler)│   │
-               │  └─────────────┘      └─────────────────┘   │
-               └─────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Client["Client"] -->|"HTTP / REST"| DP["Data Plane Routes"]
+    DP -->|"request"| Core["Core Services"]
+    Core -->|"response"| DP
+    DP -->|"JSON"| Client
+
+    Core -->|"adapter calls"| Reg["Adapter Registry"]
+    Reg --> Adapters["ADAPTER LAYER"]
+
+    subgraph Adapters
+        Store["Store"]
+        Blob["Blob"]
+        LLM["LLM"]
+        Embed["Embedder"]
+    end
+
+    Adapters --> Persist["SHARED PERSISTENCE"]
+
+    subgraph Persist
+        DB["SQLite DB"]
+        Queue["In-Memory Queue"]
+    end
+
+    classDef default fill:#1e1e2e,stroke:#45475a,stroke-width:2px,color:#cdd6f4,rx:4,ry:4
+    classDef client stroke:#89b4fa,stroke-width:3px
+    classDef plane stroke:#cba6f7,stroke-width:2px
+    classDef service stroke:#f38ba8,stroke-width:2px
+    classDef adapter stroke:#fab387,stroke-width:2px
+    classDef persist stroke:#94e2d5,stroke-width:2px
+
+    class Client client
+    class DP plane
+    class Core,Reg service
+    class Store,Blob,LLM,Embed adapter
+    class DB,Queue persist
 ```
 
 ## Component responsibilities
@@ -255,15 +193,32 @@ In **rich mode**, memories are not flat documents. They are cognitive objects:
 
 ## Request lifecycle
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Client
+    participant DP as Data Plane
+    participant QS as Query Service
+    participant Adapters as Adapters
+    participant LLM as LLM
+
+    C->>DP: POST /query
+    DP->>QS: route + principal
+    QS->>Adapters: embed(question)
+    Adapters-->>QS: query embedding
+    QS->>Adapters: vectorSearch + graph expand
+    Adapters-->>QS: candidates
+    QS->>QS: composite rank + RBAC filter
+    QS->>LLM: chat(RAG prompt)
+    LLM-->>QS: answer
+    QS-->>DP: {answer, sources, trace}
+    DP-->>C: JSON response
 ```
-1. Client ──POST /query──▶ Data Plane
-2. Data Plane ──extract principal──▶ RBAC middleware
-3. Data Plane ──route handler──▶ QueryService
-4. QueryService ──embed question──▶ EmbedderAdapter
-5. QueryService ──vector search──▶ StoreAdapter
-6. QueryService ──composite rank──▶ RecallEngine
-7. QueryService ──filter access──▶ AccessControlledStore
-8. QueryService ──generate answer──▶ LLMAdapter
-9. QueryService ──{answer, sources, trace}──▶ Data Plane
-10. Data Plane ──JSON response──▶ Client
-```
+
+## Diagrams in this documentation
+
+Cortex docs support two diagram formats.
+
+**Mermaid** is used for flowcharts, sequence diagrams, and architectural overviews that should stay in sync with code changes. Write them as fenced code blocks with the `mermaid` language tag.
+
+**Excalidraw** is used for richer illustrations. Export an SVG from [Excalidraw](https://excalidraw.com) and place it in `docs/public/diagrams/`. The docs site renders it with a lightweight component that loads the static asset — no heavy editor runtime is bundled.
