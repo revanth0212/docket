@@ -47,7 +47,17 @@ flowchart TB
 
 ## Ingestion pipeline
 
-When you POST a file to `/ingest`, Cortex runs it through a multi-stage pipeline:
+When you POST a file to `/ingest`, Cortex runs it through a multi-stage pipeline.
+
+<LottieAnimation
+  src="/lottie/data-pipeline.json"
+  alt="Data flowing through ingestion stages"
+  caption="Animated view of data moving from ingest through embed to store"
+/>
+
+The four stages shown left-to-right are **Ingest** → **Embed** → **Store** → **Query**.
+
+The pipeline steps are:
 
 ```mermaid
 flowchart TD
@@ -76,7 +86,17 @@ flowchart TD
 
 ## Query pipeline
 
-When you POST a question to `/query`, Cortex performs composite recall:
+When you POST a question to `/query`, Cortex performs composite recall.
+
+<LottieAnimation
+  src="/lottie/query-pipeline.json"
+  alt="Query pipeline animation"
+  caption="Search pulses outward and results flow back in ranked order"
+/>
+
+The magnifying glass on the left represents the **query** step; the ranked bars flowing to the right are the **retrieval results**.
+
+The recall steps are:
 
 ```mermaid
 flowchart TD
@@ -103,7 +123,17 @@ flowchart TD
 
 ## Memory model (rich mode)
 
-In **rich mode**, memories are not flat documents. They are cognitive objects:
+In **rich mode**, memories are not flat documents. They are cognitive objects with relations.
+
+<LottieAnimation
+  src="/lottie/memory-nodes.json"
+  alt="Memory nodes orbiting a central hub"
+  caption="Memories form a graph — the central hub rotates while related nodes orbit at different distances"
+/>
+
+The central hub is the **memory core**; each orbiting dot is a related memory at a different distance (relevance).
+
+A rich memory record looks like this:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -181,6 +211,18 @@ flowchart TD
     class DB,Queue persist
 ```
 
+## Control plane
+
+The control plane is Cortex's brain — it orchestrates adapters, enforces policies, and ensures every component is healthy.
+
+<LottieAnimation
+  src="/lottie/control-plane.json"
+  alt="Control plane shield with status indicators"
+  caption="The control plane validates configuration and monitors adapter health"
+/>
+
+The shield is the **control plane**; the four blinking indicators are adapter health checks (LLM, Store, Blob, Queue).
+
 ## Component responsibilities
 
 | Component | Owns | Does NOT own |
@@ -217,8 +259,18 @@ sequenceDiagram
 
 ## Diagrams in this documentation
 
-Cortex docs support two diagram formats.
+Cortex docs support three diagram formats.
 
 **Mermaid** is used for flowcharts, sequence diagrams, and architectural overviews that should stay in sync with code changes. Write them as fenced code blocks with the `mermaid` language tag.
 
 **Excalidraw** is used for richer illustrations. Export an SVG from [Excalidraw](https://excalidraw.com) and place it in `docs/public/diagrams/`. The docs site renders it with a lightweight component that loads the static asset — no heavy editor runtime is bundled.
+
+**Lottie** is used for motion animations that explain temporal concepts — data flowing through pipelines, adapter swaps, memory decay over time, or onboarding progress. Place a Lottie JSON in `docs/public/lottie/` and embed it with the `<LottieAnimation>` component. Lottie files are typically 10–100 KB of vector data, so they scale infinitely and load faster than video.
+
+```tsx
+<LottieAnimation
+  src="/lottie/data-pipeline.json"
+  alt="Data pipeline animation"
+  caption="Data flows from upload through extraction to storage"
+/>
+```

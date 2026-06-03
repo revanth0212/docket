@@ -390,6 +390,13 @@ This maps to the provider's native services and injects the correct adapter conf
 - [ ] Meeting prep service — auto-generate briefs from prior decisions, open questions, related threads
 - [ ] Artifact generation — PDF slides, emails, docs, plans from memory context
 
+### Docs & Media (Rich Visual Explanations)
+- [x] Mermaid diagram support — flowcharts, sequence diagrams, architectural overviews rendered client-side as SVG
+- [x] Excalidraw static SVG support — hand-drawn illustrations exported from Excalidraw
+- [x] Lottie animation support — lightweight vector animations for temporal concepts (data flow, adapter swaps, memory decay)
+- [ ] **Manim animation pipeline** — Python-generated mathematical/scientific animations for complex concepts (e.g., vector search geometry, attention mechanisms in recall, multi-hop graph traversal). Heavier than Lottie but unmatched for precision. Triggered via `npm run docs:animate` or CI step that renders `.py` scenes to MP4/WebM and commits to `docs/public/videos/`.
+- [ ] Interactive diagram playground — embed live Mermaid editor or Excalidraw canvas in docs for readers to fork and experiment
+
 ### Storage & Adapters
 
 **Store adapters**

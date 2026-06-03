@@ -2,6 +2,7 @@ import { source } from '@/lib/source';
 import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import { Mermaid } from '@/components/mermaid';
+import { LottieAnimation } from '@/components/lottie';
 
 export default async function Page({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
@@ -15,7 +16,7 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
-        <MDX components={{ Mermaid }} />
+        <MDX components={{ Mermaid, LottieAnimation }} />
       </DocsBody>
     </DocsPage>
   );

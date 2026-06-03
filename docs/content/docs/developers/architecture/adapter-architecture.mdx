@@ -9,6 +9,15 @@ description: Why adapters exist, how they work, and how to build one.
 
 Cortex's core mission is to be **infrastructure-agnostic**. Your data, your models, your cloud. No vendor lock-in. Adapters are the boundary that makes this possible.
 
+<LottieAnimation
+  src="/lottie/adapter-swap.json"
+  alt="Adapter swap animation"
+  caption="Swap any adapter by changing config — the gear keeps turning regardless of which providers orbit it"
+/>
+
+The orbiting boxes represent the five adapter categories you can swap independently:
+**SQLite** (Store), **Dynamo** (Store), **Ollama** (LLM), **Bedrock** (LLM), **S3** (Blob).
+
 Without adapters, Cortex would be a monolith with hardcoded dependencies:
 - SQLite only
 - Ollama only
