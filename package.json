@@ -4,7 +4,8 @@
   "description": "Open-source Second Brain Core — ingest, embed, query",
   "main": "src/platform/unified/index.js",
   "bin": {
-    "cortex": "src/platform/unified/bin.js"
+    "cortex": "src/cli/index.js",
+    "cortex-mcp-data": "bin/mcp-data.js"
   },
   "scripts": {
     "start": "node src/platform/unified/bin.js",
@@ -32,6 +33,7 @@
   ],
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1053.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@aws-sdk/client-dynamodb": "^3.1053.0",
     "@aws-sdk/client-s3": "^3.1053.0",
     "@aws-sdk/client-sqs": "^3.1053.0",
@@ -58,6 +60,13 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "files": [
+    "src/",
+    "bin/",
+    "config/",
+    "README.md",
+    "LICENSE"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -1,0 +1,89 @@
+name: Publish to npm
+
+# SECURITY: This workflow is hardened for free-tier/open-source repos.
+#   1. workflow_dispatch only — no automatic publishes on tags or releases.
+#   2. Actor check — only 'revanth0212' can trigger.
+#   3. Repository check — refuses to run on forks.
+#   4. Branch restriction — only 'main' can deploy (set in environment settings).
+#   5. Environment secret — NPM_TOKEN is scoped to the 'npm-publish' environment;
+#      forks and outside collaborators cannot access it.
+#
+# NOTE: "Required reviewers" and "Wait timer" are GitHub Teams/Enterprise features.
+# On free plans, the checks above provide equivalent protection.
+#
+# Store your npm token as an environment secret named NPM_TOKEN.
+# The token must have "publish" scope and 2FA must be enabled on your npm account.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version bump type (patch, minor, major) or explicit version'
+        required: true
+        default: 'patch'
+      dry_run:
+        description: 'Dry run (do not actually publish)'
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Only the repo owner can trigger this workflow, and never on a fork.
+    if: |
+      github.actor == 'revanth0212' &&
+      github.repository == 'revanth0212/cortex'
+    environment: npm-publish
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Verify clean working tree
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Working tree is not clean. Commit or stash changes before publishing."
+            exit 1
+          fi
+
+      - name: Lint and test
+        run: |
+          npm run lint
+          npm run test:unit
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        if: ${{ !inputs.dry_run }}
+        run: |
+          npm version ${{ inputs.version }} --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          git add package.json package-lock.json
+          git commit -m "chore(release): v${NEW_VERSION}"
+          git tag "v${NEW_VERSION}"
+          git push origin main --tags
+
+      - name: Publish to npm
+        if: ${{ !inputs.dry_run }}
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Dry-run publish
+        if: ${{ inputs.dry_run }}
+        run: npm publish --dry-run --access public
