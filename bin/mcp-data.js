@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // bin/mcp-data.js
-// MCP Data Plane server entry point (stdio transport)
+// Docket MCP Data Plane server entry point (stdio transport)
 
 const { DataPlaneMcpServer } = require('../src/mcp/data-plane');
 

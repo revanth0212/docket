@@ -1,23 +1,33 @@
-# 🧠 Cortex
+# 📋 Docket
 
 > **Open-Source Second Brain Core**
 >
 > Ingest anything. Embed everything. Query your knowledge — with memory that thinks.
 
-## What is Cortex?
+## What is Docket?
 
-Cortex is an open-source, self-hosted **Second Brain as a Service** — a modular core that developers can build any UI on top of. It handles the heavy lifting of multimodal ingestion, AI-powered insights, vector search, and knowledge retrieval.
+**Docket** is an open-source, self-hosted **Second Brain as a Service** — a modular core that developers can build any UI on top of. It handles the heavy lifting of multimodal ingestion, AI-powered insights, vector search, and knowledge retrieval.
 
-Unlike simple RAG systems, Cortex models memory after human cognition: memories have **sectors** (episodic, semantic, procedural, emotional, reflective), **validity over time**, **salience scores**, and **adaptive decay**. Retrieval combines vector similarity, graph traversal, recency, and context — not just cosine distance.
+Unlike simple RAG systems, Docket models memory after human cognition: memories have **sectors** (episodic, semantic, procedural, emotional, reflective), **validity over time**, **salience scores**, and **adaptive decay**. Retrieval combines vector similarity, graph traversal, recency, and context — not just cosine distance.
 
 **Core philosophy**: Your data, your models, your infrastructure. No vendor lock-in. No black boxes. Rich memory semantics, fully configurable.
+
+### Why "Docket"?
+
+If you have watched [*Suits*](https://en.wikipedia.org/wiki/Suits_(American_TV_series)), you know **Donna Paulsen**.
+
+Donna is never just a secretary. She is three steps ahead of whatever Harvey Specter needs. She remembers every case, every client, every favor. She knows which file to pull before Harvey asks for it. She filters the noise and surfaces exactly what matters — context, timing, and relevance included.
+
+**Docket is your Donna.**
+
+It is the system that knows what you know, remembers what you forgot, and surfaces the right information at the right moment — so you can do your best work without drowning in your own data.
 
 ## Quick Start (5 minutes)
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/yourusername/cortex.git
-cd cortex && npm install
+git clone https://github.com/yourusername/docket.git
+cd docket && npm install
 
 # 2. Run interactive setup — creates config.yaml and data directories
 npm run setup
@@ -30,7 +40,7 @@ ollama pull llama3.2
 ollama pull nomic-embed-text
 ollama serve
 
-# 5. Start Cortex
+# 5. Start Docket
 npm start
 
 # 6. Check health
@@ -51,7 +61,7 @@ curl -X POST http://localhost:3000/query \
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Your UI   │────▶│   Cortex    │────▶│   Adapters  │
+│   Your UI   │────▶│   Docket    │────▶│   Adapters  │
 │  (Anywhere) │     │   Core      │     │  (Swappable)│
 └─────────────┘     └─────────────┘     └─────────────┘
                             │                     │
@@ -81,7 +91,7 @@ curl -X POST http://localhost:3000/query \
 
 ## Memory Semantics (Optional, Configurable)
 
-Cortex works in two modes:
+Docket works in two modes:
 
 **Flat mode** (default): Simple memory records with embeddings — just like any RAG system.
 
@@ -109,16 +119,16 @@ cortex:
 
 ## Documentation
 
-- 📖 [User Docs](https://cortex-docs.example.com/users) — Getting started, hosting, configuration
-- 🛠️ [Developer Docs](https://cortex-docs.example.com/developers) — Architecture, adding adapters, contributing
-- 📚 [API Reference](https://cortex-docs.example.com/api) — OpenAPI spec
+- 📖 [User Docs](https://docket-docs.example.com/users) — Getting started, hosting, configuration
+- 🛠️ [Developer Docs](https://docket-docs.example.com/developers) — Architecture, adding adapters, contributing
+- 📚 [API Reference](https://docket-docs.example.com/api) — OpenAPI spec
 
 ## Local Development
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/yourusername/cortex.git
-cd cortex && npm install
+git clone https://github.com/yourusername/docket.git
+cd docket && npm install
 
 # 2. Create your local config and data directories
 npm run setup
@@ -131,7 +141,7 @@ ollama pull llama3.2
 ollama pull nomic-embed-text
 ollama serve
 
-# 5. Start Cortex in dev mode (auto-reload on file changes)
+# 5. Start Docket in dev mode (auto-reload on file changes)
 npm run dev
 
 # 6. Run tests
@@ -148,13 +158,13 @@ See the full [Local Development Guide](docs/content/docs/developers/local-develo
 
 | Method | Command | Best For |
 |--------|---------|----------|
-| **npm** | `npm install -g cortex` | Developers, CI/CD, quick testing |
-| **Homebrew** | `brew install cortex` | macOS / Linux desktop users |
-| **Docker** | `docker pull cortex/cortex` | Reproducible deployments, teams |
+| **npm** | `npm install -g docket` | Developers, CI/CD, quick testing |
+| **Homebrew** | `brew install docket` | macOS / Linux desktop users |
+| **Docker** | `docker pull docket/docket` | Reproducible deployments, teams |
 | **Binary** | Download from GitHub Releases | Air-gapped or restricted environments |
 | **Source** | `git clone && npm install` | Contributors, custom builds |
 
-After installation, run `cortex setup` to create your config, then `cortex doctor` to verify prerequisites.
+After installation, run `docket setup` to create your config, then `docket doctor` to verify prerequisites.
 
 ## Hosting Options
 

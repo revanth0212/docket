@@ -1,5 +1,5 @@
 {
   "title": "User Guide",
-  "description": "For people who want to use Cortex as-is with configuration changes.",
+  "description": "For people who want to use Docket as-is with configuration changes.",
   "pages": ["index", "quickstart", "configuration", "ingestion", "querying", "memory-modes", "hosting"]
 }

@@ -13,13 +13,13 @@ For personal and small-team use, yes. D1 has ~50ms read latency from the edge. W
 
 No — R2 has zero egress fees. This is a major advantage over AWS S3 for data-heavy workloads.
 
-## Can I use Cloudflare Workers to host Cortex itself?
+## Can I use Cloudflare Workers to host Docket itself?
 
-Not directly. Cortex is a Node.js server. You can deploy it on a VPS or use Cloudflare's Docker hosting. Workers can act as a lightweight proxy or cache layer in front of Cortex.
+Not directly. Docket is a Node.js server. You can deploy it on a VPS or use Cloudflare's Docker hosting. Workers can act as a lightweight proxy or cache layer in front of Docket.
 
 ## What if I exceed Workers AI free tier?
 
-You'll receive an HTTP 429 error. Cortex will retry with exponential backoff. Upgrade to Workers AI paid tier for higher limits.
+You'll receive an HTTP 429 error. Docket will retry with exponential backoff. Upgrade to Workers AI paid tier for higher limits.
 
 ## Can I mix Cloudflare and local adapters?
 

@@ -1,11 +1,11 @@
 ---
 title: Configuration
-description: Configure Cortex via YAML and environment variables.
+description: Configure Docket via YAML and environment variables.
 ---
 
 # Configuration
 
-Cortex is configured through `config/defaults.yaml` (shipped) and
+Docket is configured through `config/defaults.yaml` (shipped) and
 `config/config.yaml` (your overrides, gitignored).
 
 ## Priority
@@ -73,7 +73,7 @@ adapters:
     default: "ollama"
     providers:
       ollama:
-        adapter: "@cortex/llm-ollama"
+        adapter: "@docket/llm-ollama"
         config:
           baseUrl: "http://localhost:11434"
           model: "llama3.2"

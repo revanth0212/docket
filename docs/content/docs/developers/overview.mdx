@@ -1,11 +1,11 @@
 ---
 title: Developer Overview
-description: Build plugins and adapters for Cortex without forking the project.
+description: Build plugins and adapters for Docket without forking the project.
 ---
 
 # Developer Overview
 
-Cortex is built around **adapter contracts**. You can extend it by
+Docket is built around **adapter contracts**. You can extend it by
 implementing these contracts — no need to fork or modify core code.
 
 ## What you can build
@@ -21,7 +21,7 @@ implementing these contracts — no need to fork or modify core code.
 Core knows nothing about your adapter. It only knows the interface.
 
 ```
-Your Adapter  ──implements──▶  Interface Contract  ◀──called by──  Cortex Core
+Your Adapter  ──implements──▶  Interface Contract  ◀──called by──  Docket Core
 ```
 
 This means:
@@ -33,18 +33,18 @@ This means:
 
 ### 1. Adapters (infrastructure)
 
-Replace how Cortex talks to LLMs, databases, blob stores, or queues.
+Replace how Docket talks to LLMs, databases, blob stores, or queues.
 
 Example: adding a new vector database.
 
 ### 2. Connectors (data sources)
 
-Ingest data from external systems into Cortex.
+Ingest data from external systems into Docket.
 
 Example: a GitHub connector that ingests issues and PRs.
 
 Connectors are **not** adapter contracts. They are standalone packages that
-use Cortex's API (or direct adapter injection) to push data in.
+use Docket's API (or direct adapter injection) to push data in.
 
 ## Getting started
 
@@ -59,12 +59,12 @@ use Cortex's API (or direct adapter injection) to push data in.
 Plugins can be published as npm packages with the naming convention:
 
 ```
-@cortex/{category}-{provider}
+@docket/{category}-{provider}
 ```
 
 Examples:
-- `@cortex/llm-groq`
-- `@cortex/store-qdrant`
-- `@cortex/connector-github`
+- `@docket/llm-groq`
+- `@docket/store-qdrant`
+- `@docket/connector-github`
 
 Core dynamically loads adapters by package name from config.

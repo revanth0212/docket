@@ -5,15 +5,15 @@ description: Model Context Protocol integration for Claude, Cursor, Windsurf, an
 
 # MCP Servers
 
-Cortex will expose **two Model Context Protocol (MCP) servers** — one for the data plane and one for the control plane. This mirrors our HTTP architecture: users interact with data, operators interact with configuration.
+Docket will expose **two Model Context Protocol (MCP) servers** — one for the data plane and one for the control plane. This mirrors our HTTP architecture: users interact with data, operators interact with configuration.
 
 > **Status**: Planned for post-v0.2.0. Track progress on the [roadmap](/docs/developers).
 
 ## Why MCP?
 
-MCP lets Claude Desktop, Cursor, Windsurf, and any MCP-compatible client interact with Cortex as a native tool. Instead of writing HTTP calls, users can:
+MCP lets Claude Desktop, Cursor, Windsurf, and any MCP-compatible client interact with Docket as a native tool. Instead of writing HTTP calls, users can:
 
-- Ask Claude *"What did I photograph last week?"* and Cortex answers via the MCP data plane.
+- Ask Claude *"What did I photograph last week?"* and Docket answers via the MCP data plane.
 - Tell Cursor *"Ingest this PDF into my second brain"* and the file is processed automatically.
 - Ask Windsurf *"Show me the health of my adapters"* and the MCP control plane returns live status.
 
@@ -94,7 +94,7 @@ Claude → calls cortex_query({
   temporal: { dateFrom: "2026-05-03" }
 })
 
-Cortex → returns {
+Docket → returns {
   answer: "You photographed a red bicycle on a trail.",
   sources: [{ id: "mem_abc123", score: 0.94 }]
 }
@@ -105,7 +105,7 @@ Claude → responds to user with answer + source link
 
 ## MCP Control Plane (`mcp-control`)
 
-For **operators and developers** who manage the Cortex instance.
+For **operators and developers** who manage the Docket instance.
 
 ### Tools
 
@@ -136,7 +136,7 @@ Claude → calls cortex_plugin_add({
   config: { apiKey: "gsk_...", model: "llama3-70b-8192" }
 })
 
-Cortex → validates package, initializes adapter, returns metadata
+Docket → validates package, initializes adapter, returns metadata
 Claude → confirms: "Groq adapter registered. Capabilities: chat."
 ```
 
@@ -171,12 +171,12 @@ MCP servers are **thin wrappers** around the existing HTTP API:
 │  MCP Server Handler         │
 │  · validate args            │
 │  · map to HTTP call         │
-│  · forward to Cortex        │
+│  · forward to Docket        │
 └───────────┬─────────────────┘
             │ HTTP
             ▼
 ┌─────────────────────────────┐
-│  Cortex Data/Control Plane  │
+│  Docket Data/Control Plane  │
 │  · process request          │
 │  · return JSON              │
 └───────────┬─────────────────┘
@@ -201,13 +201,13 @@ Users configure MCP servers in their client settings:
 ```json
 {
   "mcpServers": {
-    "cortex-data": {
+    "docket-data": {
       "command": "npx",
-      "args": ["-y", "cortex-mcp-data", "--baseUrl", "http://localhost:3000"]
+      "args": ["-y", "docket-mcp-data", "--baseUrl", "http://localhost:3000"]
     },
-    "cortex-control": {
+    "docket-control": {
       "command": "npx",
-      "args": ["-y", "cortex-mcp-control", "--baseUrl", "http://localhost:3001"]
+      "args": ["-y", "docket-mcp-control", "--baseUrl", "http://localhost:3001"]
     }
   }
 }
@@ -216,9 +216,9 @@ Users configure MCP servers in their client settings:
 Or via environment variables:
 
 ```bash
-export CORTEX_DATA_URL=http://localhost:3000
-export CORTEX_CONTROL_URL=http://localhost:3001
-npx cortex-mcp-data
+export DOCKET_DATA_URL=http://localhost:3000
+export DOCKET_CONTROL_URL=http://localhost:3001
+npx docket-mcp-data
 ```
 
 ## Backlog placement

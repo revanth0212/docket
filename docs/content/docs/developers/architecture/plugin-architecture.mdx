@@ -5,7 +5,7 @@ description: How adapters are discovered, validated, loaded, and used.
 
 # Plugin Architecture
 
-Plugins in Cortex are **npm packages that implement a frozen interface**. There is no special plugin SDK, no proprietary registry, and no build step required. If you can write a JavaScript class, you can write a Cortex plugin.
+Plugins in Docket are **npm packages that implement a frozen interface**. There is no special plugin SDK, no proprietary registry, and no build step required. If you can write a JavaScript class, you can write a Docket plugin.
 
 ## The plugin contract
 
@@ -48,11 +48,11 @@ Every plugin is a single JavaScript module that exports one class:
 
 ## Adapter registry resolution
 
-When Cortex needs an adapter, the registry resolves the package name to a file path:
+When Docket needs an adapter, the registry resolves the package name to a file path:
 
 ```
   Config says:
-  adapter: "@cortex/llm-ollama"
+  adapter: "@docket/llm-ollama"
          │
          ▼
 ┌──────────────────────┐
@@ -60,7 +60,7 @@ When Cortex needs an adapter, the registry resolves the package name to a file p
 │  .resolveAdapterPath │
 └──────┬───────────────┘
        │
-       ├─ starts with "@cortex/" ?
+       ├─ starts with "@docket/" ?
        │      └─▶ resolve to ./src/adapters/{category}/{name}/index
        │
        ├─ starts with "." ?
@@ -150,7 +150,7 @@ When Cortex needs an adapter, the registry resolves the package name to a file p
 
 ## Runtime onboarding flow
 
-You do not need to restart Cortex to try a plugin. The control plane exposes validation and registration endpoints:
+You do not need to restart Docket to try a plugin. The control plane exposes validation and registration endpoints:
 
 ```
 ┌─────────────┐

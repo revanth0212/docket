@@ -1,19 +1,16 @@
 #!/usr/bin/env node
 // src/cli/index.js
-// Cortex CLI — direct engine interaction, scripting, and operations
+// Docket CLI — direct engine interaction, scripting, and operations
 
-const fs = require('fs');
-const path = require('path');
-
-const BASE_URL = process.env.CORTEX_BASE_URL || 'http://localhost:3000';
-const CONTROL_URL = process.env.CORTEX_CONTROL_URL || 'http://localhost:3001';
+const BASE_URL = process.env.DOCKET_BASE_URL || process.env.CORTEX_BASE_URL || 'http://localhost:3000';
+const CONTROL_URL = process.env.DOCKET_CONTROL_URL || process.env.CORTEX_CONTROL_URL || 'http://localhost:3001';
 
 function usage() {
   console.log(`
-Usage: cortex <command> [options]
+Usage: docket <command> [options]
 
 Commands:
-  start [options]          Start a Cortex server
+  start [options]          Start a Docket server
   health                   Check data plane health
   doctor                   Check prerequisites and system health
   plugin list              List registered plugins
@@ -29,8 +26,8 @@ Start options:
   --host <addr>            Override host (default: 0.0.0.0)
 
 Environment:
-  CORTEX_BASE_URL          Data plane URL (default: http://localhost:3000)
-  CORTEX_CONTROL_URL       Control plane URL (default: http://localhost:3001)
+  DOCKET_BASE_URL          Data plane URL (default: http://localhost:3000)
+  DOCKET_CONTROL_URL       Control plane URL (default: http://localhost:3001)
 `);
 }
 
@@ -120,7 +117,7 @@ async function cmdPluginList() {
 async function cmdPluginAdd(args) {
   const pkg = args[0];
   if (!pkg) {
-    console.error('Usage: cortex plugin add <package-name>');
+    console.error('Usage: docket plugin add <package-name>');
     process.exit(1);
   }
 
@@ -176,7 +173,7 @@ async function main() {
       } else if (sub === 'add') {
         await cmdPluginAdd(args.slice(2));
       } else {
-        console.error('Usage: cortex plugin <list|add>');
+        console.error('Usage: docket plugin <list|add>');
         process.exit(1);
       }
       break;

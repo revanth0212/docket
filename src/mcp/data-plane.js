@@ -1,5 +1,5 @@
 // src/mcp/data-plane.js
-// MCP server wrapping the Cortex Data Plane HTTP API
+// MCP server wrapping the Docket Data Plane HTTP API
 
 const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
 const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
@@ -7,9 +7,9 @@ const { z } = require('zod');
 
 class DataPlaneMcpServer {
   constructor(options = {}) {
-    this.baseUrl = (options.baseUrl || process.env.CORTEX_DATA_URL || 'http://localhost:3000').replace(/\/$/, '');
+    this.baseUrl = (options.baseUrl || process.env.DOCKET_DATA_URL || process.env.CORTEX_DATA_URL || 'http://localhost:3000').replace(/\/$/, '');
     this.server = new McpServer({
-      name: 'cortex-mcp-data',
+      name: 'docket-mcp-data',
       version: '0.1.0'
     });
     this._registerTools();
@@ -41,8 +41,8 @@ class DataPlaneMcpServer {
 
   _registerTools() {
     this.server.tool(
-      'cortex_query',
-      'Ask a natural-language question against your Cortex memory.',
+      'docket_query',
+      'Ask a natural-language question against your Docket memory.',
       {
         question: z.string().describe('The question to ask.'),
         topK: z.number().optional().describe('Number of results to retrieve.')
@@ -61,8 +61,8 @@ class DataPlaneMcpServer {
     );
 
     this.server.tool(
-      'cortex_ingest',
-      'Ingest text or a file reference into Cortex.',
+      'docket_ingest',
+      'Ingest text or a file reference into Docket.',
       {
         content: z.string().optional().describe('Raw text content to ingest.'),
         filePath: z.string().optional().describe('Path to a file to ingest.'),
@@ -82,7 +82,7 @@ class DataPlaneMcpServer {
     );
 
     this.server.tool(
-      'cortex_get',
+      'docket_get',
       'Retrieve a memory by ID.',
       {
         id: z.string().describe('Memory ID (e.g. mem_abc123).')
@@ -98,7 +98,7 @@ class DataPlaneMcpServer {
     );
 
     this.server.tool(
-      'cortex_create',
+      'docket_create',
       'Create a memory directly.',
       {
         rawRef: z.string().describe('Blob reference or raw content identifier.'),
@@ -121,7 +121,7 @@ class DataPlaneMcpServer {
     );
 
     this.server.tool(
-      'cortex_update',
+      'docket_update',
       'Update a memory by ID.',
       {
         id: z.string().describe('Memory ID to update.'),
@@ -145,7 +145,7 @@ class DataPlaneMcpServer {
     );
 
     this.server.tool(
-      'cortex_delete',
+      'docket_delete',
       'Delete a memory by ID.',
       {
         id: z.string().describe('Memory ID to delete.')
@@ -163,7 +163,7 @@ class DataPlaneMcpServer {
     );
 
     this.server.tool(
-      'cortex_relate',
+      'docket_relate',
       'Create a relation between two memories.',
       {
         sourceId: z.string().describe('Source memory ID.'),

@@ -1,5 +1,5 @@
 {
   "title": "Local",
-  "description": "Run Cortex on your laptop or home server with zero cloud dependencies.",
+  "description": "Run Docket on your laptop or home server with zero cloud dependencies.",
   "pages": ["index", "onboarding", "maintenance", "faqs", "troubleshooting", "migration"]
 }

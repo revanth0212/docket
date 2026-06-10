@@ -1,5 +1,5 @@
 {
   "title": "Developer Guide",
-  "description": "For developers who want to build plugins and adapters within the Cortex system.",
+  "description": "For developers who want to build plugins and adapters within the Docket system.",
   "pages": ["index", "overview", "adapter-contracts", "adding-an-llm", "adding-a-store", "adding-a-blob-provider", "adding-a-queue-provider", "config-schema", "local-development", "architecture", "plugin-ecosystem"]
 }

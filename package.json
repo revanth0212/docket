@@ -1,11 +1,11 @@
 {
-  "name": "cortex",
+  "name": "docket",
   "version": "0.1.0",
   "description": "Open-source Second Brain Core — ingest, embed, query",
   "main": "src/platform/unified/index.js",
   "bin": {
-    "cortex": "src/cli/index.js",
-    "cortex-mcp-data": "bin/mcp-data.js"
+    "docket": "src/cli/index.js",
+    "docket-mcp-data": "bin/mcp-data.js"
   },
   "scripts": {
     "start": "node src/platform/unified/bin.js",
@@ -70,7 +70,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/cortex.git"
+    "url": "https://github.com/yourusername/docket.git"
   },
   "keywords": [
     "second-brain",

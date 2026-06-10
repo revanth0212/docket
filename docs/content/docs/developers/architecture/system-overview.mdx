@@ -1,11 +1,11 @@
 ---
 title: System Overview
-description: How Cortex is laid out from request to response.
+description: How Docket is laid out from request to response.
 ---
 
 # System Overview
 
-Cortex is a modular **Second Brain as a Service**. At its heart are five swappable adapters wrapped by a rich cognitive memory layer. This page shows how the pieces fit together.
+Docket is a modular **Second Brain as a Service**. At its heart are five swappable adapters wrapped by a rich cognitive memory layer. This page shows how the pieces fit together.
 
 ## High-level layout
 
@@ -13,7 +13,7 @@ Cortex is a modular **Second Brain as a Service**. At its heart are five swappab
 flowchart TB
     UI(["YOUR UI\nWeb app · Mobile · CLI · MCP server · Voice agent"])
 
-    subgraph CortexCore ["CORTEX CORE"]
+    subgraph DocketCore ["CORTEX CORE"]
         CP["Control Plane\nPort 3001 · /admin/*"]
         DP["Data Plane\nPort 3000 · /ingest /query"]
         Shared["Shared Services\nConfig Loader · Adapter Registry"]
@@ -47,7 +47,7 @@ flowchart TB
 
 ## Ingestion pipeline
 
-When you POST a file to `/ingest`, Cortex runs it through a multi-stage pipeline.
+When you POST a file to `/ingest`, Docket runs it through a multi-stage pipeline.
 
 <LottieAnimation
   src="/lottie/data-pipeline.json"
@@ -86,7 +86,7 @@ flowchart TD
 
 ## Query pipeline
 
-When you POST a question to `/query`, Cortex performs composite recall.
+When you POST a question to `/query`, Docket performs composite recall.
 
 <LottieAnimation
   src="/lottie/query-pipeline.json"
@@ -213,7 +213,7 @@ flowchart TD
 
 ## Control plane
 
-The control plane is Cortex's brain — it orchestrates adapters, enforces policies, and ensures every component is healthy.
+The control plane is Docket's brain — it orchestrates adapters, enforces policies, and ensures every component is healthy.
 
 <LottieAnimation
   src="/lottie/control-plane.json"
@@ -259,7 +259,7 @@ sequenceDiagram
 
 ## Diagrams in this documentation
 
-Cortex docs support three diagram formats.
+Docket docs support three diagram formats.
 
 **Mermaid** is used for flowcharts, sequence diagrams, and architectural overviews that should stay in sync with code changes. Write them as fenced code blocks with the `mermaid` language tag.
 

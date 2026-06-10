@@ -1,5 +1,5 @@
 {
   "title": "Cloud Providers",
-  "description": "Provider-specific guides for running Cortex on Local, Cloudflare, or AWS infrastructure.",
+  "description": "Provider-specific guides for running Docket on Local, Cloudflare, or AWS infrastructure.",
   "pages": ["index", "local", "cloudflare", "aws"]
 }

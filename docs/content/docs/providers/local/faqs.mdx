@@ -5,7 +5,7 @@ description: Frequently asked questions about local deployment.
 
 # Local FAQs
 
-## Can I run Cortex without Ollama?
+## Can I run Docket without Ollama?
 
 Yes. Use LM Studio, OpenAI, Groq, or any OpenAI-compatible provider. Update `config/config.yaml` accordingly.
 
@@ -16,13 +16,13 @@ Base install: ~10 MB. Each memory record: ~1-5 KB. Vector embeddings: ~3 KB per 
 ## Is my data encrypted?
 
 At rest: SQLite does not encrypt by default. For encryption, use SQLCipher or an encrypted filesystem.
-In transit: Only relevant if you expose Cortex over a network. Use a reverse proxy with TLS (Caddy, nginx).
+In transit: Only relevant if you expose Docket over a network. Use a reverse proxy with TLS (Caddy, nginx).
 
-## Can I run Cortex on a Raspberry Pi?
+## Can I run Docket on a Raspberry Pi?
 
 Yes. Ollama runs on ARM64. Use a lightweight model like `llama3.2:1b` for the Pi.
 
-## What ports does Cortex use?
+## What ports does Docket use?
 
 - `3000` — Unified server (data + control plane)
 - `3001` — Control plane only (split mode)

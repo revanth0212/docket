@@ -1,6 +1,6 @@
 ---
 title: Migration
-description: Move your local Cortex data to a cloud provider.
+description: Move your local Docket data to a cloud provider.
 ---
 
 # Local-to-Cloud Migration
@@ -18,10 +18,10 @@ description: Move your local Cortex data to a cloud provider.
 
 ```bash
 # Export memories as JSONL
-cortex export --store=sqlite --format=jsonl > memories.jsonl
+docket export --store=sqlite --format=jsonl > memories.jsonl
 
 # Export blobs
-cortex export --blob=filesystem --target=./blob-export
+docket export --blob=filesystem --target=./blob-export
 ```
 
 ### 2. Prepare Cloud Config
@@ -32,19 +32,19 @@ Create `config/profiles/hosted.yaml` with your cloud provider settings.
 
 ```bash
 # Switch to hosted profile
-export CORTEX_PROFILE=hosted
+export DOCKET_PROFILE=hosted
 
 # Import memories
-cortex import --store=cloudflare-d1 --format=jsonl < memories.jsonl
+docket import --store=cloudflare-d1 --format=jsonl < memories.jsonl
 
 # Import blobs
-cortex import --blob=r2 --source=./blob-export
+docket import --blob=r2 --source=./blob-export
 ```
 
 ### 4. Verify
 
 ```bash
-cortex doctor --profile=hosted
+docket doctor --profile=hosted
 curl https://your-hosted-instance/health
 ```
 
@@ -57,7 +57,7 @@ Update your clients to point to the hosted instance. Keep local as backup until 
 If something goes wrong:
 
 ```bash
-export CORTEX_PROFILE=local
+export DOCKET_PROFILE=local
 npm start
 ```
 

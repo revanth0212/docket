@@ -1,6 +1,6 @@
 ---
 title: Onboarding
-description: Deploy Cortex on AWS from scratch.
+description: Deploy Docket on AWS from scratch.
 ---
 
 # AWS Onboarding
@@ -56,7 +56,7 @@ aws iam create-access-key --user-name your-user-name
 
 If using IAM role (EC2/ECS/Lambda), no manual credential setup needed.
 
-## Step 3: Configure Cortex
+## Step 3: Configure Docket
 
 Create `config/config.yaml`:
 
@@ -67,7 +67,7 @@ cortex:
       default: "aws-bedrock"
       providers:
         aws-bedrock:
-          adapter: "@cortex/llm-aws-bedrock"
+          adapter: "@docket/llm-aws-bedrock"
           config:
             region: "us-east-1"
             model: "anthropic.claude-3-5-sonnet-20241022-v2:0"
@@ -77,7 +77,7 @@ cortex:
       default: "aws-bedrock"
       providers:
         aws-bedrock:
-          adapter: "@cortex/embedder-aws-bedrock"
+          adapter: "@docket/embedder-aws-bedrock"
           config:
             region: "us-east-1"
             model: "amazon.titan-embed-text-v2:0"
@@ -88,7 +88,7 @@ cortex:
       default: "aws-dynamodb"
       providers:
         aws-dynamodb:
-          adapter: "@cortex/store-dynamodb"
+          adapter: "@docket/store-dynamodb"
           config:
             region: "us-east-1"
             tableName: "cortex"
@@ -97,7 +97,7 @@ cortex:
       default: "aws-s3"
       providers:
         aws-s3:
-          adapter: "@cortex/blob-s3"
+          adapter: "@docket/blob-s3"
           config:
             bucket: "cortex-blobs-your-account-id"
             region: "us-east-1"
@@ -106,7 +106,7 @@ cortex:
       default: "aws-sqs"
       providers:
         aws-sqs:
-          adapter: "@cortex/queue-sqs"
+          adapter: "@docket/queue-sqs"
           config:
             region: "us-east-1"
             queueUrl: "https://sqs.us-east-1.amazonaws.com/your-account-id/cortex-jobs"
@@ -131,7 +131,7 @@ export AWS_SECRET_ACCESS_KEY=your-secret-key
 export AWS_REGION=us-east-1
 ```
 
-## Step 5: Run Cortex
+## Step 5: Run Docket
 
 ```bash
 npm install

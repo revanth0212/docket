@@ -39,7 +39,7 @@ dequeue ──▶  processing
 
 ## Worker registration
 
-Cortex registers workers by job type:
+Docket registers workers by job type:
 
 ```javascript
 await queue.registerWorker('ingestion', async (payload, job) => {
@@ -66,7 +66,7 @@ adapters:
     default: "bullmq"
     providers:
       bullmq:
-        adapter: "@cortex/queue-bullmq"
+        adapter: "@docket/queue-bullmq"
         config:
           redisUrl: "${REDIS_URL}"
           prefix: "cortex"

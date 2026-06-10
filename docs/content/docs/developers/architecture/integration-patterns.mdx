@@ -1,11 +1,11 @@
 ---
 title: Integration Patterns
-description: How to embed Cortex into existing applications and systems.
+description: How to embed Docket into existing applications and systems.
 ---
 
 # Integration Patterns
 
-Cortex is designed to drop into existing systems without rewriting them. Here are the four primary integration patterns, from simplest to most decoupled.
+Docket is designed to drop into existing systems without rewriting them. Here are the four primary integration patterns, from simplest to most decoupled.
 
 ## Pattern comparison
 
@@ -20,7 +20,7 @@ Cortex is designed to drop into existing systems without rewriting them. Here ar
 
 ## 1. Embedded mode
 
-Import Cortex directly into your Node.js application. You control the server, the routes, and the lifecycle.
+Import Docket directly into your Node.js application. You control the server, the routes, and the lifecycle.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -40,7 +40,7 @@ Import Cortex directly into your Node.js application. You control the server, th
 │                          │ import { buildUnifiedApp }        │
 │                          ▼ from 'cortex'                     │
 │   ┌─────────────────────────────────────────────────────┐   │
-│   │  Cortex Core (same process)                         │   │
+│   │  Docket Core (same process)                         │   │
 │   │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │   │
 │   │  │ Store   │ │ Blob    │ │ LLM     │ │ Embed   │   │   │
 │   │  │SQLite   │ │FileSys  │ │Ollama   │ │Ollama   │   │   │
@@ -55,7 +55,7 @@ Import Cortex directly into your Node.js application. You control the server, th
 ```javascript
 const { buildUnifiedApp } = require('cortex');
 
-// Build Cortex inside your app
+// Build Docket inside your app
 const cortex = await buildUnifiedApp({ logger: false });
 
 // Use it directly
@@ -71,26 +71,26 @@ const answer = await cortex.query({
 
 ### When to use
 - You already have a Node.js backend and want to add memory without new infrastructure.
-- You want to customize routes, auth, or middleware around Cortex behavior.
-- You are building a product where Cortex is a feature, not the whole product.
+- You want to customize routes, auth, or middleware around Docket behavior.
+- You are building a product where Docket is a feature, not the whole product.
 
 ### Trade-offs
-- **Tight coupling** — Your app and Cortex share memory, event loop, and crashes.
-- **Harder to scale** — You scale your app and Cortex together, even if they have different bottlenecks.
-- **Version lock** — Cortex upgrades require app deployments.
+- **Tight coupling** — Your app and Docket share memory, event loop, and crashes.
+- **Harder to scale** — You scale your app and Docket together, even if they have different bottlenecks.
+- **Version lock** — Docket upgrades require app deployments.
 
 ---
 
 ## 2. Sidecar mode
 
-Run Cortex as a separate process on the same host. Your app talks to it over localhost HTTP.
+Run Docket as a separate process on the same host. Your app talks to it over localhost HTTP.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                         HOST                                │
 │                                                             │
 │   ┌─────────────────────┐   ┌─────────────────────────┐     │
-│   │   Your Application  │   │   Cortex Data Plane     │     │
+│   │   Your Application  │   │   Docket Data Plane     │     │
 │   │   (any language)    │   │   (Port 3000)           │     │
 │   │                     │   │                         │     │
 │   │  fetch('http://     │   │  /ingest  /query        │     │
@@ -100,7 +100,7 @@ Run Cortex as a separate process on the same host. Your app talks to it over loc
 │   └─────────────────────┘   └─────────────────────────┘     │
 │                                                             │
 │   ┌─────────────────────────┐                             │
-│   │   Cortex Control Plane  │                             │
+│   │   Docket Control Plane  │                             │
 │   │   (Port 3001)           │                             │
 │   │   — admin only          │                             │
 │   └─────────────────────────┘                             │
@@ -111,7 +111,7 @@ Run Cortex as a separate process on the same host. Your app talks to it over loc
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Code example (Python app talking to Cortex)
+### Code example (Python app talking to Docket)
 
 ```python
 import requests
@@ -131,19 +131,19 @@ print(response.json()['answer'])
 
 ### When to use
 - Your stack is polyglot (Python, Go, Ruby, Java) and you need memory capabilities.
-- You want to upgrade or restart Cortex independently of your app.
-- You run in containers and want one Cortex sidecar per app instance.
+- You want to upgrade or restart Docket independently of your app.
+- You run in containers and want one Docket sidecar per app instance.
 
 ### Trade-offs
 - **Network hop** — localhost is fast, but still a hop.
 - **Operational complexity** — Two processes to monitor, two logs to aggregate.
-- **Schema coupling** — Your app depends on Cortex's REST contract.
+- **Schema coupling** — Your app depends on Docket's REST contract.
 
 ---
 
 ## 3. API Gateway mode
 
-Cortex sits behind your existing API gateway or load balancer. Clients hit your gateway; the gateway proxies memory routes to Cortex.
+Docket sits behind your existing API gateway or load balancer. Clients hit your gateway; the gateway proxies memory routes to Docket.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -157,15 +157,15 @@ Cortex sits behind your existing API gateway or load balancer. Clients hit your 
 │   ┌─────────────────────────────────────────────────────┐   │
 │   │  /api/v1/users    ──────▶  Your User Service        │   │
 │   │  /api/v1/orders   ──────▶  Your Order Service       │   │
-│   │  /api/v1/search   ──────▶  Cortex Data Plane        │   │
-│   │  /api/v1/memories ──────▶  Cortex Data Plane        │   │
-│   │  /admin/*         ──────▶  Cortex Control Plane     │   │
+│   │  /api/v1/search   ──────▶  Docket Data Plane        │   │
+│   │  /api/v1/memories ──────▶  Docket Data Plane        │   │
+│   │  /admin/*         ──────▶  Docket Control Plane     │   │
 │   └─────────────────────────────────────────────────────┘   │
 │                          │                                  │
 │                          │ routing rules                     │
 │                          ▼                                  │
 │   ┌─────────────────────────────────────────────────────┐   │
-│   │  Cortex Cluster                                     │   │
+│   │  Docket Cluster                                     │   │
 │   │  ┌─────────┐  ┌─────────┐  ┌─────────┐             │   │
 │   │  │ Data    │  │ Data    │  │ Data    │             │   │
 │   │  │ Plane 1 │  │ Plane 2 │  │ Plane N │             │   │
@@ -203,19 +203,19 @@ routes:
 
 ### When to use
 - You already have an API gateway and want to add search/memory without new endpoints.
-- You need to scale Cortex data planes independently from your main services.
-- You want to apply existing auth, rate limiting, and logging to Cortex routes.
+- You need to scale Docket data planes independently from your main services.
+- You want to apply existing auth, rate limiting, and logging to Docket routes.
 
 ### Trade-offs
 - **Gateway complexity** — Routing rules must be maintained.
-- **Path collisions** — Make sure Cortex routes don't clash with your existing API.
+- **Path collisions** — Make sure Docket routes don't clash with your existing API.
 - **Latency** — Extra hop through the gateway.
 
 ---
 
 ## 4. Webhook / event-driven mode
 
-Your existing system pushes events to Cortex's ingest endpoint. Cortex processes them asynchronously and stores the results.
+Your existing system pushes events to Docket's ingest endpoint. Docket processes them asynchronously and stores the results.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -238,7 +238,7 @@ Your existing system pushes events to Cortex's ingest endpoint. Cortex processes
 │                          │ async queue                      │
 │                          ▼                                  │
 │   ┌─────────────────────────────────────────────────────┐   │
-│   │  Cortex Workers                                     │   │
+│   │  Docket Workers                                     │   │
 │   │  · extract text                                     │   │
 │   │  · embed                                            │   │
 │   │  · classify sector                                  │   │
@@ -255,7 +255,7 @@ Your existing system pushes events to Cortex's ingest endpoint. Cortex processes
 app.post('/webhooks/jira', async (req, res) => {
   const issue = req.body;
 
-  // Forward to Cortex for memory extraction
+  // Forward to Docket for memory extraction
   await fetch('http://localhost:3000/ingest', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -273,11 +273,11 @@ app.post('/webhooks/jira', async (req, res) => {
 ### When to use
 - You have event-driven architecture (webhooks, Kafka, SQS).
 - You want to build a knowledge base from existing tools without migration scripts.
-- You need fire-and-forget ingestion — Cortex processes in the background.
+- You need fire-and-forget ingestion — Docket processes in the background.
 
 ### Trade-offs
 - **Eventual consistency** — Memories are not immediately queryable.
-- **Duplicate handling** — Your webhooks may fire multiple times; Cortex does not deduplicate by default.
+- **Duplicate handling** — Your webhooks may fire multiple times; Docket does not deduplicate by default.
 - **No feedback loop** — If ingestion fails, the caller may not know.
 
 ---
@@ -332,7 +332,7 @@ For SaaS products that serve multiple customers:
 ┌─────────────────────────────────────────────────────────────┐
 │                      TENANT A                               │
 │   ┌─────────────────┐      ┌─────────────────────────────┐  │
-│   │  Tenant A App   │◄────▶│  Cortex Data Plane          │  │
+│   │  Tenant A App   │◄────▶│  Docket Data Plane          │  │
 │   │                 │      │  (isolated namespace)         │  │
 │   └─────────────────┘      │  · prefix: "tenant-a/"        │  │
 │                            │  · RBAC policy per memory     │  │
@@ -342,7 +342,7 @@ For SaaS products that serve multiple customers:
 ┌─────────────────────────────────────────────────────────────┐
 │                      TENANT B                               │
 │   ┌─────────────────┐      ┌─────────────────────────────┐  │
-│   │  Tenant B App   │◄────▶│  Cortex Data Plane          │  │
+│   │  Tenant B App   │◄────▶│  Docket Data Plane          │  │
 │   │                 │      │  (isolated namespace)         │  │
 │   └─────────────────┘      │  · prefix: "tenant-b/"        │  │
 │                            │  · RBAC policy per memory     │  │

@@ -7,7 +7,7 @@ description: Why adapters exist, how they work, and how to build one.
 
 ## Why Adapters Exist
 
-Cortex's core mission is to be **infrastructure-agnostic**. Your data, your models, your cloud. No vendor lock-in. Adapters are the boundary that makes this possible.
+Docket's core mission is to be **infrastructure-agnostic**. Your data, your models, your cloud. No vendor lock-in. Adapters are the boundary that makes this possible.
 
 <LottieAnimation
   src="/lottie/adapter-swap.json"
@@ -18,7 +18,7 @@ Cortex's core mission is to be **infrastructure-agnostic**. Your data, your mode
 The orbiting boxes represent the five adapter categories you can swap independently:
 **SQLite** (Store), **Dynamo** (Store), **Ollama** (LLM), **Bedrock** (LLM), **S3** (Blob).
 
-Without adapters, Cortex would be a monolith with hardcoded dependencies:
+Without adapters, Docket would be a monolith with hardcoded dependencies:
 - SQLite only
 - Ollama only
 - Local filesystem only
@@ -34,7 +34,7 @@ With adapters, the same core code runs on a laptop (SQLite + Ollama), on Cloudfl
 
 ## The Five Frozen Interfaces
 
-An interface is **frozen** once it ships. Changing it requires a GitHub issue, architect review, and a version bump. This stability is what lets third-party developers publish `@cortex/llm-groq` and trust it will work.
+An interface is **frozen** once it ships. Changing it requires a GitHub issue, architect review, and a version bump. This stability is what lets third-party developers publish `@docket/llm-groq` and trust it will work.
 
 The five interfaces map to five infrastructure concerns:
 
@@ -89,10 +89,10 @@ The registry resolves adapter names using three strategies:
 ```mermaid
 flowchart LR
     A["Adapter Name"] --> B{"Prefix?"}
-    B -->|"@cortex/"| C["Local src/adapters path"]
+    B -->|"@docket/"| C["Local src/adapters path"]
     B -->|"./ or ../"| D["Direct require"]
     B -->|"everything else"| E["npm package"]
-    C -->|"@cortex/store-sqlite"| F["src/adapters/store/sqlite/index.js"]
+    C -->|"@docket/store-sqlite"| F["src/adapters/store/sqlite/index.js"]
     D -->|"./my-custom-adapter"| G["/full/path/to/my-custom-adapter"]
     E -->|"@myorg/cortex-llm-groq"| H["node_modules/@myorg/cortex-llm-groq"]
 
@@ -137,7 +137,7 @@ flowchart TD
 If any gate fails, the server exits with a clear error:
 
 ```
-Failed to initialize adapters: Failed to load adapter @cortex/llm-ollama:
+Failed to initialize adapters: Failed to load adapter @docket/llm-ollama:
 Ollama unreachable at http://localhost:11434: fetch failed
 Run `npm run doctor` to check prerequisites.
 ```
@@ -282,7 +282,7 @@ This guarantees that a hanging request does not freeze the ingestion pipeline.
 
 ### Fail Fast in Initialize
 
-If an adapter cannot reach its backend, it throws during `initialize()`. The server refuses to start. This is intentional: a Cortex with a broken database is worse than no Cortex at all.
+If an adapter cannot reach its backend, it throws during `initialize()`. The server refuses to start. This is intentional: a Docket with a broken database is worse than no Docket at all.
 
 ```javascript
 async initialize() {
@@ -501,7 +501,7 @@ const health = await registry.healthCheck();
 
 ## Summary
 
-Adapters are Cortex's **portability layer**. They turn a hardcoded application into a configurable platform.
+Adapters are Docket's **portability layer**. They turn a hardcoded application into a configurable platform.
 
 - **Five frozen interfaces** separate concerns cleanly.
 - **Identical lifecycles** make every adapter predictable.

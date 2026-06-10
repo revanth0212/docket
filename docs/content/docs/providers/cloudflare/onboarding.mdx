@@ -1,6 +1,6 @@
 ---
 title: Onboarding
-description: Deploy Cortex on Cloudflare from scratch.
+description: Deploy Docket on Cloudflare from scratch.
 ---
 
 # Cloudflare Onboarding
@@ -48,7 +48,7 @@ No setup needed — enabled by default on your account.
    - Account: Queues:Edit
 3. Copy the token
 
-## Step 3: Configure Cortex
+## Step 3: Configure Docket
 
 Create `config/config.yaml`:
 
@@ -59,7 +59,7 @@ cortex:
       default: "cloudflare-workers-ai"
       providers:
         cloudflare-workers-ai:
-          adapter: "@cortex/llm-cloudflare-workers-ai"
+          adapter: "@docket/llm-cloudflare-workers-ai"
           config:
             accountId: "${CF_ACCOUNT_ID}"
             apiToken: "${CF_API_TOKEN}"
@@ -69,7 +69,7 @@ cortex:
       default: "cloudflare-workers-ai"
       providers:
         cloudflare-workers-ai:
-          adapter: "@cortex/embedder-cloudflare-workers-ai"
+          adapter: "@docket/embedder-cloudflare-workers-ai"
           config:
             accountId: "${CF_ACCOUNT_ID}"
             apiToken: "${CF_API_TOKEN}"
@@ -80,7 +80,7 @@ cortex:
       default: "cloudflare-d1"
       providers:
         cloudflare-d1:
-          adapter: "@cortex/store-cloudflare-d1"
+          adapter: "@docket/store-cloudflare-d1"
           config:
             accountId: "${CF_ACCOUNT_ID}"
             databaseId: "${CF_D1_DATABASE_ID}"
@@ -90,7 +90,7 @@ cortex:
       default: "cloudflare-r2"
       providers:
         cloudflare-r2:
-          adapter: "@cortex/blob-s3"
+          adapter: "@docket/blob-s3"
           config:
             endpoint: "https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
             bucket: "cortex-blobs"
@@ -103,7 +103,7 @@ cortex:
       default: "cloudflare-queues"
       providers:
         cloudflare-queues:
-          adapter: "@cortex/queue-cloudflare"
+          adapter: "@docket/queue-cloudflare"
           config:
             accountId: "${CF_ACCOUNT_ID}"
             queueName: "cortex-jobs"
@@ -120,7 +120,7 @@ export R2_ACCESS_KEY_ID=your-r2-key-id
 export R2_SECRET_ACCESS_KEY=your-r2-secret
 ```
 
-## Step 5: Run Cortex
+## Step 5: Run Docket
 
 ```bash
 npm install

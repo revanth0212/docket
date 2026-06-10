@@ -5,7 +5,7 @@ description: Create, publish, and onboard adapters as npm packages.
 
 # Plugin Ecosystem
 
-Cortex adapters are just npm packages. Anyone can create one, publish it, and let users install it with `npm install` and a config line.
+Docket adapters are just npm packages. Anyone can create one, publish it, and let users install it with `npm install` and a config line.
 
 ## The 30-second version
 
@@ -52,7 +52,7 @@ Scoped packages work too:
 
 ```bash
 mkdir cortex-llm-groq
-cd cortex-llm-groq
+cd docket-llm-groq
 npm init -y
 ```
 
@@ -96,7 +96,7 @@ class GroqLlmAdapter extends LlmAdapter {
     return {
       name: 'groq-llm',
       version: '0.1.0',
-      description: 'Groq LLM adapter for Cortex',
+      description: 'Groq LLM adapter for Docket',
       category: 'llm',
       capabilities: ['chat'],
       cortexCompatibility: '>=0.1.0 <0.3.0',
@@ -118,7 +118,7 @@ module.exports = { GroqLlmAdapter };
 | `version` | string | yes | Semver version |
 | `category` | enum | yes | `llm`, `embedder`, `store`, `blob`, or `queue` |
 | `capabilities` | string[] | yes | What the adapter can do (e.g., `['chat']`) |
-| `cortexCompatibility` | string | yes | Semver range of supported Cortex versions |
+| `cortexCompatibility` | string | yes | Semver range of supported Docket versions |
 | `description` | string | no | Short human-readable description |
 | `author` | string | no | Author name or email |
 | `repository` | string | no | URL to source code |
@@ -191,12 +191,12 @@ The control plane exposes endpoints to manage plugins without editing code:
 2. **Implement `health()`** — Return `{ ok, latency, error? }` so the control plane can aggregate status.
 3. **Handle missing config gracefully** — Throw clear errors in `initialize()` if required config is missing.
 4. **Document config options** — Users should know what to put in the `config:` block.
-5. **Pin `cortexCompatibility`** — Be honest about which Cortex versions you support.
+5. **Pin `cortexCompatibility`** — Be honest about which Docket versions you support.
 6. **Use semantic versioning** — Breaking changes = major version bump.
 
 ## Coming soon
 
 - **Plugin marketplace** — Curated list of community adapters
-- **CLI onboarding** — `cortex plugin install groq` instead of `npm install`
+- **CLI onboarding** — `docket plugin install groq` instead of `npm install`
 - **Verified badge** — Adapters that pass extended contract tests
 - **Auto-discovery** — Scan `node_modules` for `cortex-*` packages and suggest them
