@@ -341,7 +341,7 @@ class CloudflareD1StoreAdapter extends StoreAdapter {
 
     while (queue.length > 0) {
       const { id, d } = queue.shift();
-      if (visited.has(id) || d > depth) continue;
+      if (visited.has(id) || d >= depth) continue;
       visited.add(id);
 
       const rows = await this._query(
