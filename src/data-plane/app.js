@@ -75,7 +75,7 @@ function buildDataPlane(options = {}) {
     logger: options.logger ?? true
   });
 
-  app.register(registerDataPlaneRoutes);
+  app.register(registerDataPlaneRoutes, options);
   return app;
 }
 

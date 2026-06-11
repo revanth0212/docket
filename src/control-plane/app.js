@@ -99,7 +99,7 @@ function buildControlPlane(options = {}) {
     logger: options.logger ?? true
   });
 
-  app.register(registerControlPlaneRoutes);
+  app.register(registerControlPlaneRoutes, options);
   return app;
 }
 

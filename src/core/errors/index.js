@@ -39,7 +39,7 @@ class DocketError extends Error {
  */
 class ValidationError extends DocketError {
   constructor(message, options = {}) {
-    super(message, { ...options, code: 'VALIDATION_ERROR', statusCode: 400 });
+    super(message, { code: 'VALIDATION_ERROR', statusCode: 400, ...options });
     this.name = 'ValidationError';
   }
 }

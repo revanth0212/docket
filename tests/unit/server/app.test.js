@@ -2,7 +2,7 @@
 // Unit tests for the Fastify server factory and health route
 
 const request = require('supertest');
-const { buildApp } = require('../../../src/server/app');
+const { buildApp, startServer } = require('../../../src/server/app');
 
 describe('Server /health', () => {
   let app;
@@ -32,6 +32,27 @@ describe('buildApp', () => {
     await app.ready();
     expect(app).toBeDefined();
     expect(typeof app.get).toBe('function');
+    await app.close();
+  });
+
+  it('uses default options', async () => {
+    const app = buildApp();
+    await app.ready();
+    expect(app).toBeDefined();
+    await app.close();
+  });
+});
+
+describe('startServer', () => {
+  it('starts the server', async () => {
+    const app = await startServer({ logger: false, port: 0 });
+    expect(app).toBeDefined();
+    await app.close();
+  });
+
+  it('starts with default options', async () => {
+    const app = await startServer({ port: 0 });
+    expect(app).toBeDefined();
     await app.close();
   });
 });
