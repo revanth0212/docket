@@ -100,7 +100,7 @@ Docket works in two modes:
 Toggle in `config.yaml`:
 
 ```yaml
-cortex:
+docket:
   memory:
     mode: "rich"  # flat | rich
     sectors:

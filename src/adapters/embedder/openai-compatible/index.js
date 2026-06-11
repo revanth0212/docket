@@ -150,7 +150,7 @@ class OpenAiCompatibleEmbedderAdapter extends EmbedderAdapter {
       name: 'openai-compatible-embedder',
       version: '0.1.0',
       capabilities: ['embed', 'embedBatch'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }

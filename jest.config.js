@@ -9,9 +9,9 @@ module.exports = {
     '**/tests/**/*.test.js'
   ],
   moduleNameMapper: {
-    '^@cortex/core/(.*)$': '<rootDir>/src/core/$1',
-    '^@cortex/server/(.*)$': '<rootDir>/src/server/$1',
-    '^@cortex/adapters/(.*)$': '<rootDir>/src/adapters/$1'
+    '^@docket/core/(.*)$': '<rootDir>/src/core/$1',
+    '^@docket/server/(.*)$': '<rootDir>/src/server/$1',
+    '^@docket/adapters/(.*)$': '<rootDir>/src/adapters/$1'
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   verbose: true,

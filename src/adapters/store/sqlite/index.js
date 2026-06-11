@@ -13,7 +13,7 @@ const { generateMemoryId } = require('../../../core/utils/id-generator');
 class SQLiteStoreAdapter extends StoreAdapter {
   constructor(config) {
     super(config);
-    this.dbPath = this.config.path || './data/cortex.db';
+    this.dbPath = this.config.path || './data/docket.db';
     this.enableWAL = this.config.enableWAL !== false;
     this.busyTimeout = this.config.busyTimeout || 5000;
     this.vectorDimensions = this.config.vectorDimensions || 768;
@@ -442,7 +442,7 @@ class SQLiteStoreAdapter extends StoreAdapter {
       name: 'sqlite-store',
       version: '0.1.0',
       capabilities: ['crud', 'vectorSearch', 'relations', 'migrations'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }

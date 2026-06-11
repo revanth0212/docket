@@ -32,7 +32,7 @@ Every plugin is a single JavaScript module that exports one class:
 │   │        version: '0.1.0',                                 │   │
 │   │        category: 'llm',                                  │   │
 │   │        capabilities: ['chat'],                           │   │
-│   │        cortexCompatibility: '>=0.1.0 <0.3.0'             │   │
+│   │        docketCompatibility: '>=0.1.0 <0.3.0'             │   │
 │   │      };                                                  │   │
 │   │    }                                                     │   │
 │   │  }                                                      │   │
@@ -41,7 +41,7 @@ Every plugin is a single JavaScript module that exports one class:
 │   └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
 │   package.json                                                  │
-│   { "name": "cortex-llm-myprovider", ... }                      │
+│   { "name": "docket-llm-myprovider", ... }                      │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -160,7 +160,7 @@ You do not need to restart Docket to try a plugin. The control plane exposes val
 └──────┬──────┘
        │
        │ POST /admin/plugins/validate
-       │ { "packageName": "cortex-llm-groq" }
+       │ { "packageName": "docket-llm-groq" }
        ▼
 ┌─────────────────────────┐
 │  Control Plane          │
@@ -172,7 +172,7 @@ You do not need to restart Docket to try a plugin. The control plane exposes val
         │ { valid: true, manifest, category }
         │
         │ POST /admin/plugins
-        │ { "packageName": "cortex-llm-groq",
+        │ { "packageName": "docket-llm-groq",
         │   "config": { "apiKey": "..." } }
         ▼
 ┌─────────────────────────┐
@@ -243,7 +243,7 @@ Here is the complete anatomy of a well-behaved adapter:
 │  │      version: '0.1.0',                              │    │
 │  │      category: 'llm',                               │    │
 │  │      capabilities: ['chat', 'stream'],              │    │
-│  │      cortexCompatibility: '>=0.1.0 <0.3.0',         │    │
+│  │      docketCompatibility: '>=0.1.0 <0.3.0',         │    │
 │  │      description: '...',                            │    │
 │  │      author: '...',                                 │    │
 │  │      repository: '...',                             │    │

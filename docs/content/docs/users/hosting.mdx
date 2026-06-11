@@ -17,7 +17,7 @@ npm start
 Use `pm2` or `systemd` for production:
 
 ```bash
-pm2 start src/platform/standalone/bin.js --name cortex
+pm2 start src/platform/standalone/bin.js --name docket
 ```
 
 ## Docker
@@ -48,11 +48,11 @@ npx wrangler deploy
 
 ## Environment-specific config
 
-Use `CORTEX_*` environment variables to adapt to each platform without
+Use `DOCKET_*` environment variables to adapt to each platform without
 changing YAML files:
 
 ```bash
-CORTEX_ADAPTERS_STORE_DEFAULT=postgres
-CORTEX_ADAPTERS_STORE_PROVIDERS_POSTGRES_CONFIG_CONNECTIONSTRING="postgres://..."
-CORTEX_MEMORY_MODE=rich
+DOCKET_ADAPTERS_STORE_DEFAULT=postgres
+DOCKET_ADAPTERS_STORE_PROVIDERS_POSTGRES_CONFIG_CONNECTIONSTRING="postgres://..."
+DOCKET_MEMORY_MODE=rich
 ```

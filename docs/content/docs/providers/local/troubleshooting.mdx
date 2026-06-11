@@ -17,16 +17,16 @@ Your `config/config.yaml` is missing the `adapters.store` section. Run `npm run 
 
 ## "Migration failed"
 
-1. Check SQLite file permissions: `ls -la data/cortex.db`
+1. Check SQLite file permissions: `ls -la data/docket.db`
 2. Ensure the directory exists: `mkdir -p data`
-3. Try deleting the DB and letting it recreate: `rm data/cortex.db`
+3. Try deleting the DB and letting it recreate: `rm data/docket.db`
 
 ## "Port 3000 already in use"
 
 ```bash
 lsof -i :3000
 # Or change the port:
-CORTEX_PORT=8080 npm start
+DOCKET_PORT=8080 npm start
 ```
 
 ## Slow queries

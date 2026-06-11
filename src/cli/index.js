@@ -2,8 +2,8 @@
 // src/cli/index.js
 // Docket CLI — direct engine interaction, scripting, and operations
 
-const BASE_URL = process.env.DOCKET_BASE_URL || process.env.CORTEX_BASE_URL || 'http://localhost:3000';
-const CONTROL_URL = process.env.DOCKET_CONTROL_URL || process.env.CORTEX_CONTROL_URL || 'http://localhost:3001';
+const BASE_URL = process.env.DOCKET_BASE_URL || 'http://localhost:3000';
+const CONTROL_URL = process.env.DOCKET_CONTROL_URL || 'http://localhost:3001';
 
 function usage() {
   console.log(`

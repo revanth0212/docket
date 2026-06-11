@@ -26,16 +26,16 @@ async function main() {
     process.exit(1);
   }
 
-  const port = process.env.CORTEX_PORT
-    ? Number(process.env.CORTEX_PORT)
-    : (config.cortex.server?.port ?? 3000);
-  const host = process.env.CORTEX_HOST || (config.cortex.server?.host ?? '0.0.0.0');
+  const port = process.env.DOCKET_PORT
+    ? Number(process.env.DOCKET_PORT)
+    : (config.docket.server?.port ?? 3000);
+  const host = process.env.DOCKET_HOST || (config.docket.server?.host ?? '0.0.0.0');
 
   try {
     const app = await startUnifiedApp({ port, host, adapters, registry, config });
     app.log.info('Adapter registry initialized: %o', Object.keys(adapters));
   } catch (err) {
-    console.error('Failed to start Cortex unified server:', err.message);
+    console.error('Failed to start Docket unified server:', err.message);
     process.exit(1);
   }
 }

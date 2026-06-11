@@ -7,7 +7,7 @@ const { z } = require('zod');
 
 class DataPlaneMcpServer {
   constructor(options = {}) {
-    this.baseUrl = (options.baseUrl || process.env.DOCKET_DATA_URL || process.env.CORTEX_DATA_URL || 'http://localhost:3000').replace(/\/$/, '');
+    this.baseUrl = (options.baseUrl || process.env.DOCKET_DATA_URL || 'http://localhost:3000').replace(/\/$/, '');
     this.server = new McpServer({
       name: 'docket-mcp-data',
       version: '0.1.0'

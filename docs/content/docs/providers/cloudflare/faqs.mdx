@@ -26,7 +26,7 @@ You'll receive an HTTP 429 error. Docket will retry with exponential backoff. Up
 Yes. For example, use Cloudflare Workers AI for LLM/embedder but keep SQLite locally for storage:
 
 ```yaml
-cortex:
+docket:
   adapters:
     llm:
       default: "cloudflare-workers-ai"

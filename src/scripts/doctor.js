@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // src/scripts/doctor.js
-// Check system health and prerequisites before starting Cortex
+// Check system health and prerequisites before starting Docket
 
 const fs = require('fs');
 const path = require('path');
@@ -101,7 +101,7 @@ function ensureDir(dir) {
 }
 
 async function main() {
-  console.log('\n🩺 Cortex Doctor\n');
+  console.log('\n🩺 Docket Doctor\n');
 
   console.log('Node.js:');
   await checkNodeVersion();
@@ -122,7 +122,7 @@ async function main() {
   if (exitCode === 0) {
     console.log('🎉 All checks passed. You are ready to run `npm start`.\n');
   } else {
-    console.log('🔧 Please fix the issues above before starting Cortex.\n');
+    console.log('🔧 Please fix the issues above before starting Docket.\n');
   }
 
   process.exit(exitCode);

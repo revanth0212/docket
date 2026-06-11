@@ -90,7 +90,7 @@ async function startDataPlane(options = {}) {
   const host = options.host ?? '0.0.0.0';
 
   await app.listen({ port, host });
-  app.log.info(`Cortex data plane listening on http://${host}:${port}`);
+  app.log.info(`Docket data plane listening on http://${host}:${port}`);
 
   return app;
 }

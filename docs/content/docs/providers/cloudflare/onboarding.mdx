@@ -17,20 +17,20 @@ description: Deploy Docket on Cloudflare from scratch.
 
 ```bash
 # Using wrangler (install via npm i -g wrangler)
-wrangler d1 create cortex-db
+wrangler d1 create docket-db
 # Note the database ID
 ```
 
 ### R2 Bucket
 
 ```bash
-wrangler r2 bucket create cortex-blobs
+wrangler r2 bucket create docket-blobs
 ```
 
 ### Queue
 
 ```bash
-wrangler queues create cortex-jobs
+wrangler queues create docket-jobs
 ```
 
 ### Workers AI
@@ -53,7 +53,7 @@ No setup needed — enabled by default on your account.
 Create `config/config.yaml`:
 
 ```yaml
-cortex:
+docket:
   adapters:
     llm:
       default: "cloudflare-workers-ai"
@@ -93,7 +93,7 @@ cortex:
           adapter: "@docket/blob-s3"
           config:
             endpoint: "https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
-            bucket: "cortex-blobs"
+            bucket: "docket-blobs"
             accessKeyId: "${R2_ACCESS_KEY_ID}"
             secretAccessKey: "${R2_SECRET_ACCESS_KEY}"
             region: "auto"
@@ -106,7 +106,7 @@ cortex:
           adapter: "@docket/queue-cloudflare"
           config:
             accountId: "${CF_ACCOUNT_ID}"
-            queueName: "cortex-jobs"
+            queueName: "docket-jobs"
             apiToken: "${CF_API_TOKEN}"
 ```
 

@@ -177,7 +177,7 @@ class InMemoryQueueAdapter extends QueueAdapter {
       name: 'memory-queue',
       version: '0.1.0',
       capabilities: ['enqueue', 'dequeue', 'workers'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }

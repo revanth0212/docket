@@ -1,6 +1,6 @@
-# Cortex — AI Agent Orchestration Guide
+# Docket — AI Agent Orchestration Guide
 
-> **Project**: Cortex — Open-Source Second Brain Core
+> **Project**: Docket — Open-Source Second Brain Core
 > **Approach**: Vibe Coding with AI Agents
 > **Last Updated**: 2026-05-09
 
@@ -71,7 +71,7 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 **Constraints**:
 - NEVER import from `src/adapters/` into `src/core/`
 - ALWAYS use dependency injection — never instantiate adapters in core
-- ALWAYS handle errors with CortexError subclasses
+- ALWAYS handle errors with DocketError subclasses
 - ALWAYS add JSDoc to public methods
 - NEVER hardcode sector types or decay functions — read from config
 - **NEVER commit a user-facing feature without updating the corresponding docs page**
@@ -109,8 +109,8 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 
 | Audience | Who they are | What they need | Doc location |
 |----------|--------------|----------------|--------------|
-| **Users** | People who run Cortex as-is, tweak config, ingest/query data | Quickstart, config options, ingestion/query guides, hosting, memory modes | `docs/content/docs/users/` |
-| **Developers (plugin authors)** | People who extend Cortex with new adapters/connectors without forking core | Adapter contracts, implementation templates, config schema, adding LLMs/stores/blobs/queues | `docs/content/docs/developers/` |
+| **Users** | People who run Docket as-is, tweak config, ingest/query data | Quickstart, config options, ingestion/query guides, hosting, memory modes | `docs/content/docs/users/` |
+| **Developers (plugin authors)** | People who extend Docket with new adapters/connectors without forking core | Adapter contracts, implementation templates, config schema, adding LLMs/stores/blobs/queues | `docs/content/docs/developers/` |
 
 **Critical distinction**: Developer docs are NOT contributor docs. They are for people building plugins *within* the system, not people editing `src/core/`.
 
@@ -229,7 +229,7 @@ Before starting any task, agent must verify:
 - [ ] I know which docs sections need updating
 - [ ] I won't break the dependency graph (core ← server ← adapters)
 - [ ] I have a rollback plan (git stash / branch)
-- [ ] If building memory semantics, I check config for `cortex.memory.mode`
+- [ ] If building memory semantics, I check config for `docket.memory.mode`
 
 ---
 
@@ -269,13 +269,13 @@ Before starting any task, agent must verify:
 
 **System Prompt Addendum**:
 ```
-You are the backend-agent for Project Cortex.
+You are the backend-agent for Project Docket.
 You implement features within strict architectural boundaries.
 Before writing code, read the relevant interface file in src/core/interfaces/.
 After implementing, run npm test and update docs if user-facing behavior changed.
 Never modify interfaces without architect approval.
 Commit with semantic messages: feat:, fix:, docs:, test:, refactor:.
-When implementing memory semantics, respect config.cortex.memory.mode (flat vs rich).
+When implementing memory semantics, respect config.docket.memory.mode (flat vs rich).
 Every user-facing change must include a corresponding docs update.
 ```
 
@@ -342,7 +342,7 @@ class {Provider}{Category}Adapter extends BaseAdapter {
       name: '{provider}-{category}',
       version: '0.1.0',
       capabilities: ['cap1', 'cap2'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }

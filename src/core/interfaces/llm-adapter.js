@@ -95,7 +95,7 @@ class LlmAdapter {
 
   /**
    * Adapter metadata for discovery and compatibility checking
-   * @returns {{name: string, version: string, capabilities: string[], cortexCompatibility: string}}
+   * @returns {{name: string, version: string, capabilities: string[], docketCompatibility: string}}
    */
   static get metadata() {
     throw new Error('Property "metadata" must be implemented by subclass');

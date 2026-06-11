@@ -1,6 +1,6 @@
 ---
 title: Config Schema Reference
-description: Full reference for cortex.yaml configuration options.
+description: Full reference for docket.yaml configuration options.
 ---
 
 # Config Schema Reference
@@ -8,7 +8,7 @@ description: Full reference for cortex.yaml configuration options.
 ## Root structure
 
 ```yaml
-cortex:
+docket:
   version: string
   server: ServerConfig
   logging: LoggingConfig
@@ -89,12 +89,12 @@ queue:
 
 ## Environment variable overrides
 
-Format: `CORTEX_{PATH}` where path uses underscores:
+Format: `DOCKET_{PATH}` where path uses underscores:
 
 ```bash
-CORTEX_ADAPTERS_LLM_DEFAULT=openai
-CORTEX_MEMORY_MODE=rich
-CORTEX_MEMORY_DECAY_FUNCTIONS_EPISODIC_HALFLIFEDAYS=14
+DOCKET_ADAPTERS_LLM_DEFAULT=openai
+DOCKET_MEMORY_MODE=rich
+DOCKET_MEMORY_DECAY_FUNCTIONS_EPISODIC_HALFLIFEDAYS=14
 ```
 
 Values are auto-parsed: `true`/`false` → boolean, numbers → number,

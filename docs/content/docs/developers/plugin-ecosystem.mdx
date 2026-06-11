@@ -11,7 +11,7 @@ Docket adapters are just npm packages. Anyone can create one, publish it, and le
 
 **As a developer:**
 ```bash
-npm install cortex-llm-groq
+npm install docket-llm-groq
 ```
 
 **As a user:**
@@ -20,7 +20,7 @@ adapters:
   llm:
     providers:
       groq:
-        adapter: "cortex-llm-groq"
+        adapter: "docket-llm-groq"
         config:
           apiKey: "${GROQ_API_KEY}"
 ```
@@ -30,20 +30,20 @@ adapters:
 Community plugins should follow this pattern so users can find them and the registry can infer their category:
 
 ```
-cortex-{category}-{name}
+docket-{category}-{name}
 ```
 
 | Category | Example |
 |----------|---------|
-| LLM | `cortex-llm-groq` |
-| Embedder | `cortex-embedder-cohere` |
-| Store | `cortex-store-qdrant` |
-| Blob | `cortex-blob-s3` |
-| Queue | `cortex-queue-redis` |
+| LLM | `docket-llm-groq` |
+| Embedder | `docket-embedder-cohere` |
+| Store | `docket-store-qdrant` |
+| Blob | `docket-blob-s3` |
+| Queue | `docket-queue-redis` |
 
 Scoped packages work too:
 ```
-@myorg/cortex-llm-groq
+@myorg/docket-llm-groq
 ```
 
 ## Creating a plugin
@@ -51,7 +51,7 @@ Scoped packages work too:
 ### 1. Scaffold
 
 ```bash
-mkdir cortex-llm-groq
+mkdir docket-llm-groq
 cd docket-llm-groq
 npm init -y
 ```
@@ -59,7 +59,7 @@ npm init -y
 ### 2. Implement the interface
 
 ```javascript
-const { LlmAdapter } = require('cortex-core/interfaces/llm-adapter');
+const { LlmAdapter } = require('docket-core/interfaces/llm-adapter');
 
 class GroqLlmAdapter extends LlmAdapter {
   constructor(config) {
@@ -99,9 +99,9 @@ class GroqLlmAdapter extends LlmAdapter {
       description: 'Groq LLM adapter for Docket',
       category: 'llm',
       capabilities: ['chat'],
-      cortexCompatibility: '>=0.1.0 <0.3.0',
+      docketCompatibility: '>=0.1.0 <0.3.0',
       author: 'you@example.com',
-      repository: 'https://github.com/you/cortex-llm-groq',
+      repository: 'https://github.com/you/docket-llm-groq',
       license: 'MIT'
     };
   }
@@ -118,7 +118,7 @@ module.exports = { GroqLlmAdapter };
 | `version` | string | yes | Semver version |
 | `category` | enum | yes | `llm`, `embedder`, `store`, `blob`, or `queue` |
 | `capabilities` | string[] | yes | What the adapter can do (e.g., `['chat']`) |
-| `cortexCompatibility` | string | yes | Semver range of supported Docket versions |
+| `docketCompatibility` | string | yes | Semver range of supported Docket versions |
 | `description` | string | no | Short human-readable description |
 | `author` | string | no | Author name or email |
 | `repository` | string | no | URL to source code |
@@ -137,19 +137,19 @@ No special registry needed. Standard npm works.
 ### Install the package
 
 ```bash
-npm install cortex-llm-groq
+npm install docket-llm-groq
 ```
 
 ### Add to config
 
 ```yaml
-# config/cortex.yaml
+# config/docket.yaml
 adapters:
   llm:
     default: "groq"
     providers:
       groq:
-        adapter: "cortex-llm-groq"
+        adapter: "docket-llm-groq"
         config:
           apiKey: "${GROQ_API_KEY}"
           model: "llama3-70b-8192"
@@ -160,7 +160,7 @@ adapters:
 ```bash
 curl -X POST http://localhost:3001/admin/plugins/validate \
   -H "Content-Type: application/json" \
-  -d '{"packageName": "cortex-llm-groq"}'
+  -d '{"packageName": "docket-llm-groq"}'
 ```
 
 ### Register at runtime
@@ -169,7 +169,7 @@ curl -X POST http://localhost:3001/admin/plugins/validate \
 curl -X POST http://localhost:3001/admin/plugins \
   -H "Content-Type: application/json" \
   -d '{
-    "packageName": "cortex-llm-groq",
+    "packageName": "docket-llm-groq",
     "config": { "apiKey": "gsk_...", "model": "llama3-70b-8192" }
   }'
 ```
@@ -191,7 +191,7 @@ The control plane exposes endpoints to manage plugins without editing code:
 2. **Implement `health()`** — Return `{ ok, latency, error? }` so the control plane can aggregate status.
 3. **Handle missing config gracefully** — Throw clear errors in `initialize()` if required config is missing.
 4. **Document config options** — Users should know what to put in the `config:` block.
-5. **Pin `cortexCompatibility`** — Be honest about which Docket versions you support.
+5. **Pin `docketCompatibility`** — Be honest about which Docket versions you support.
 6. **Use semantic versioning** — Breaking changes = major version bump.
 
 ## Coming soon
@@ -199,4 +199,4 @@ The control plane exposes endpoints to manage plugins without editing code:
 - **Plugin marketplace** — Curated list of community adapters
 - **CLI onboarding** — `docket plugin install groq` instead of `npm install`
 - **Verified badge** — Adapters that pass extended contract tests
-- **Auto-discovery** — Scan `node_modules` for `cortex-*` packages and suggest them
+- **Auto-discovery** — Scan `node_modules` for `docket-*` packages and suggest them

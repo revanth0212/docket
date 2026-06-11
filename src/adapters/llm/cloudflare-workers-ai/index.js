@@ -103,7 +103,7 @@ class CloudflareWorkersAiLlmAdapter extends LlmAdapter {
       name: 'cloudflare-workers-ai-llm',
       version: '0.1.0',
       capabilities: ['chat'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }

@@ -11,13 +11,13 @@ describe('AdapterRegistry', () => {
   });
 
   describe('resolveAdapterPath', () => {
-    it('resolves @cortex/store-sqlite to local path', () => {
-      const resolved = registry.resolveAdapterPath('store', '@cortex/store-sqlite');
+    it('resolves @docket/store-sqlite to local path', () => {
+      const resolved = registry.resolveAdapterPath('store', '@docket/store-sqlite');
       expect(resolved).toMatch(/src\/adapters\/store\/sqlite\/index$/);
     });
 
-    it('resolves @cortex/llm-ollama to local path', () => {
-      const resolved = registry.resolveAdapterPath('llm', '@cortex/llm-ollama');
+    it('resolves @docket/llm-ollama to local path', () => {
+      const resolved = registry.resolveAdapterPath('llm', '@docket/llm-ollama');
       expect(resolved).toMatch(/src\/adapters\/llm\/ollama\/index$/);
     });
 
@@ -42,7 +42,7 @@ describe('AdapterRegistry', () => {
   describe('loadAdapter', () => {
     it('loads and initializes a real adapter', async () => {
       const adapter = await registry.loadAdapter('store', 'sqlite', {
-        adapter: '@cortex/store-sqlite',
+        adapter: '@docket/store-sqlite',
         config: { path: ':memory:', enableWAL: false }
       });
 
@@ -78,7 +78,7 @@ describe('AdapterRegistry', () => {
   describe('healthCheck', () => {
     it('returns health for all initialized adapters', async () => {
       const adapter = await registry.loadAdapter('store', 'sqlite', {
-        adapter: '@cortex/store-sqlite',
+        adapter: '@docket/store-sqlite',
         config: { path: ':memory:', enableWAL: false }
       });
 

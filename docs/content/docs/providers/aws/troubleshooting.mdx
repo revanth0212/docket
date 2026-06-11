@@ -29,14 +29,14 @@ description: Fix common AWS deployment issues.
 
 The table doesn't exist or is in a different region:
 ```bash
-aws dynamodb describe-table --table-name cortex --region us-east-1
+aws dynamodb describe-table --table-name docket --region us-east-1
 ```
 
 ## "Queue does not exist" on SQS
 
 Verify the queue URL:
 ```bash
-aws sqs get-queue-url --queue-name cortex-jobs
+aws sqs get-queue-url --queue-name docket-jobs
 ```
 
 ## Slow Bedrock responses

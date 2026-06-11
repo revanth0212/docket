@@ -30,7 +30,7 @@ Import Docket directly into your Node.js application. You control the server, th
 │   │  Your Express / Fastify / NestJS server             │   │
 │   │                                                     │   │
 │   │  app.get('/api/search', async (req, res) => {       │   │
-│   │    const result = await cortex.query({              │   │
+│   │    const result = await docket.query({              │   │
 │   │      question: req.query.q                          │   │
 │   │    });                                              │   │
 │   │    res.json(result);                                │   │
@@ -38,7 +38,7 @@ Import Docket directly into your Node.js application. You control the server, th
 │   └─────────────────────────────────────────────────────┘   │
 │                          │                                  │
 │                          │ import { buildUnifiedApp }        │
-│                          ▼ from 'cortex'                     │
+│                          ▼ from 'docket'                     │
 │   ┌─────────────────────────────────────────────────────┐   │
 │   │  Docket Core (same process)                         │   │
 │   │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │   │
@@ -53,18 +53,18 @@ Import Docket directly into your Node.js application. You control the server, th
 ### Code example
 
 ```javascript
-const { buildUnifiedApp } = require('cortex');
+const { buildUnifiedApp } = require('docket');
 
 // Build Docket inside your app
-const cortex = await buildUnifiedApp({ logger: false });
+const docket = await buildUnifiedApp({ logger: false });
 
 // Use it directly
-const memory = await cortex.createMemory({
+const memory = await docket.createMemory({
   rawRef: 'uploads/photo.jpg',
   contentType: 'image/jpeg'
 });
 
-const answer = await cortex.query({
+const answer = await docket.query({
   question: 'What did I photograph last week?'
 });
 ```
@@ -105,7 +105,7 @@ Run Docket as a separate process on the same host. Your app talks to it over loc
 │   │   — admin only          │                             │
 │   └─────────────────────────┘                             │
 │                                                             │
-│              Both share ./data/cortex.db                    │
+│              Both share ./data/docket.db                    │
 │              (SQLite) or same Postgres                      │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
@@ -188,14 +188,14 @@ Docket sits behind your existing API gateway or load balancer. Clients hit your 
 # nginx / traefik / Kong config
 routes:
   - match: PathPrefix(`/api/v1/search`)
-    service: cortex-data-plane
+    service: docket-data-plane
     stripPrefix: false
 
   - match: PathPrefix(`/api/v1/memories`)
-    service: cortex-data-plane
+    service: docket-data-plane
 
   - match: PathPrefix(`/admin`)
-    service: cortex-control-plane
+    service: docket-control-plane
     middlewares:
       - ip-whitelist:
           sourceRange: ["10.0.0.0/8"]
@@ -231,7 +231,7 @@ Your existing system pushes events to Docket's ingest endpoint. Docket processes
 │          │ "new lead"     │ "issue opened"    │ "file uploaded"
 │          ▼                ▼                   ▼            │
 │   ┌─────────────────────────────────────────────────────┐   │
-│   │            CORTEX INGEST ENDPOINT                   │   │
+│   │            DOCKET INGEST ENDPOINT                   │   │
 │   │            POST /ingest (async)                     │   │
 │   └─────────────────────────────────────────────────────┘   │
 │                          │                                  │

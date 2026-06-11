@@ -61,12 +61,12 @@ Set up billing alerts in the Cloudflare dashboard.
 
 Export snapshots:
 ```bash
-wrangler d1 export cortex-db --output=./backup.sql
+wrangler d1 export docket-db --output=./backup.sql
 ```
 
 ### R2
 
 Use `rclone` or `aws s3 sync`:
 ```bash
-aws s3 sync s3://cortex-blobs ./r2-backup --endpoint-url=https://$CF_ACCOUNT_ID.r2.cloudflarestorage.com
+aws s3 sync s3://docket-blobs ./r2-backup --endpoint-url=https://$CF_ACCOUNT_ID.r2.cloudflarestorage.com
 ```

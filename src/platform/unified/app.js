@@ -38,7 +38,7 @@ async function startUnifiedApp(options = {}) {
   const host = options.host ?? '0.0.0.0';
 
   await app.listen({ port, host });
-  app.log.info(`Cortex unified server listening on http://${host}:${port}`);
+  app.log.info(`Docket unified server listening on http://${host}:${port}`);
 
   return app;
 }

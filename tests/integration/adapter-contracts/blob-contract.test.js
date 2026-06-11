@@ -13,8 +13,8 @@ describe('BlobAdapter Contract', () => {
     const config = loadConfig();
     registry = new AdapterRegistry();
 
-    const testAdapter = process.env.ADAPTER || config.cortex.adapters.blob.default;
-    const providerConfig = config.cortex.adapters.blob.providers[testAdapter];
+    const testAdapter = process.env.ADAPTER || config.docket.adapters.blob.default;
+    const providerConfig = config.docket.adapters.blob.providers[testAdapter];
 
     blob = await registry.loadAdapter('blob', testAdapter, providerConfig);
   });

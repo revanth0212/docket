@@ -9,7 +9,7 @@ const PluginManifestSchema = z.object({
   description: z.string().optional(),
   category: z.enum(['llm', 'embedder', 'store', 'blob', 'queue']),
   capabilities: z.array(z.string()).min(1),
-  cortexCompatibility: z.string().min(1),
+  docketCompatibility: z.string().min(1),
   author: z.string().optional(),
   repository: z.string().url().optional(),
   license: z.string().optional(),
@@ -35,7 +35,7 @@ function validateManifest(manifest) {
 
 /**
  * Infer plugin category from package name
- * Supports: @scope/cortex-llm-name, cortex-llm-name, @cortex/llm-name
+ * Supports: @scope/docket-llm-name, docket-llm-name, @docket/llm-name
  * @param {string} packageName
  * @returns {string|null}
  */
@@ -43,7 +43,7 @@ function inferCategory(packageName) {
   const categories = ['llm', 'embedder', 'store', 'blob', 'queue'];
   const clean = packageName.replace(/^@[^/]+\//, '');
   for (const cat of categories) {
-    if (clean.includes(`-${cat}-`) || clean === `cortex-${cat}`) {
+    if (clean.includes(`-${cat}-`) || clean === `docket-${cat}`) {
       return cat;
     }
   }
@@ -57,7 +57,7 @@ function inferCategory(packageName) {
  * @returns {string}
  */
 function suggestPackageName(category, name) {
-  return `cortex-${category}-${name}`;
+  return `docket-${category}-${name}`;
 }
 
 module.exports = {

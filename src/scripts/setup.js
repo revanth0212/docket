@@ -46,7 +46,7 @@ function copyConfigExample() {
 }
 
 async function runSetup() {
-  console.log('\n🧠 Cortex Setup\n');
+  console.log('\n🧠 Docket Setup\n');
 
   // Create data directories
   ensureDir(path.join(process.cwd(), 'data', 'blobs'));
@@ -71,13 +71,13 @@ async function runSetup() {
   const embedderUrl = await ask('Embedder base URL', embedderDefaults.url);
   const embedderModel = await ask('Embedder model', embedderDefaults.model);
 
-  const storePath = await ask('SQLite database path', './data/cortex.db');
+  const storePath = await ask('SQLite database path', './data/docket.db');
   const blobPath = await ask('Blob storage path', './data/blobs');
 
   // Generate user config
   const llmAdapterName = llmProvider === 'ollama' ? 'ollama' : 'openai-compatible';
 
-  const config = `cortex:
+  const config = `docket:
   version: "0.2.0"
 
   adapters:
@@ -85,7 +85,7 @@ async function runSetup() {
       default: "${llmProvider}"
       providers:
         ${llmProvider}:
-          adapter: "@cortex/llm-${llmAdapterName}"
+          adapter: "@docket/llm-${llmAdapterName}"
           config:
             baseUrl: "${llmUrl}"
             model: "${llmModel}"
@@ -95,13 +95,13 @@ async function runSetup() {
       default: "${llmProvider === 'lm-studio' ? 'lm-studio' : 'ollama'}"
       providers:
         ollama:
-          adapter: "@cortex/embedder-ollama"
+          adapter: "@docket/embedder-ollama"
           config:
             baseUrl: "${embedderUrl}"
             model: "${embedderModel}"
             dimensions: 768
         lm-studio:
-          adapter: "@cortex/embedder-openai-compatible"
+          adapter: "@docket/embedder-openai-compatible"
           config:
             baseUrl: "${embedderUrl}"
             model: "${embedderModel}"
@@ -112,7 +112,7 @@ async function runSetup() {
       default: "sqlite"
       providers:
         sqlite:
-          adapter: "@cortex/store-sqlite"
+          adapter: "@docket/store-sqlite"
           config:
             path: "${storePath}"
             enableWAL: true
@@ -122,7 +122,7 @@ async function runSetup() {
       default: "filesystem"
       providers:
         filesystem:
-          adapter: "@cortex/blob-filesystem"
+          adapter: "@docket/blob-filesystem"
           config:
             basePath: "${blobPath}"
             maxFileSize: "100mb"
@@ -131,7 +131,7 @@ async function runSetup() {
       default: "in-memory"
       providers:
         in-memory:
-          adapter: "@cortex/queue-memory"
+          adapter: "@docket/queue-memory"
           config:
             maxConcurrent: 5
             retryAttempts: 3

@@ -9,11 +9,11 @@ description: Keep your local Docket instance healthy.
 
 ### SQLite Database
 
-The database lives at `./data/cortex.db`. Back it up regularly:
+The database lives at `./data/docket.db`. Back it up regularly:
 
 ```bash
 # Create a timestamped backup
-cp data/cortex.db "data/cortex-backup-$(date +%Y%m%d).db"
+cp data/docket.db "data/docket-backup-$(date +%Y%m%d).db"
 ```
 
 ### Blob Storage
@@ -21,7 +21,7 @@ cp data/cortex.db "data/cortex-backup-$(date +%Y%m%d).db"
 Blobs are stored in `./data/blobs/`. Sync to an external drive or cloud:
 
 ```bash
-rsync -av data/blobs/ /mnt/external/cortex-blobs/
+rsync -av data/blobs/ /mnt/external/docket-blobs/
 ```
 
 ## Updates
@@ -55,5 +55,5 @@ npm start | npx pino-pretty
 SQLite with WAL mode can grow. Vacuum periodically:
 
 ```bash
-sqlite3 data/cortex.db "VACUUM;"
+sqlite3 data/docket.db "VACUUM;"
 ```

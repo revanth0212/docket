@@ -12,17 +12,17 @@ Docket is configured through `config/defaults.yaml` (shipped) and
 
 1. `defaults.yaml` — built-in defaults
 2. `config.yaml` — user overrides
-3. `CORTEX_*` environment variables
+3. `DOCKET_*` environment variables
 4. CLI arguments (future)
 
 ## Environment variables
 
-Any config value can be overridden via `CORTEX_{PATH}`:
+Any config value can be overridden via `DOCKET_{PATH}`:
 
 ```bash
-CORTEX_ADAPTERS_LLM_DEFAULT=openai
-CORTEX_SERVER_PORT=8080
-CORTEX_MEMORY_MODE=rich
+DOCKET_ADAPTERS_LLM_DEFAULT=openai
+DOCKET_SERVER_PORT=8080
+DOCKET_MEMORY_MODE=rich
 ```
 
 You can also use interpolation in YAML:
@@ -33,7 +33,7 @@ adapters:
     providers:
       kimi:
         config:
-          apiKey: "${CORTEX_KIMI_API_KEY:-}"
+          apiKey: "${DOCKET_KIMI_API_KEY:-}"
 ```
 
 ## Key sections

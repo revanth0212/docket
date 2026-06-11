@@ -1,8 +1,8 @@
-# Cortex User Configuration
+# Docket User Configuration
 # This file overrides config/defaults.yaml.
-# Environment variables override both: CORTEX_SERVER_PORT=8080
+# Environment variables override both: DOCKET_SERVER_PORT=8080
 
-cortex:
+docket:
   version: "0.2.0"
 
   adapters:
@@ -10,7 +10,7 @@ cortex:
       default: "lm-studio"
       providers:
         lm-studio:
-          adapter: "@cortex/llm-openai-compatible"
+          adapter: "@docket/llm-openai-compatible"
           config:
             baseUrl: "http://localhost:1234/v1"
             model: "local-model"
@@ -20,7 +20,7 @@ cortex:
       default: "ollama"
       providers:
         ollama:
-          adapter: "@cortex/embedder-ollama"
+          adapter: "@docket/embedder-ollama"
           config:
             baseUrl: "http://localhost:11434"
             model: "nomic-embed-text"
@@ -30,9 +30,9 @@ cortex:
       default: "sqlite"
       providers:
         sqlite:
-          adapter: "@cortex/store-sqlite"
+          adapter: "@docket/store-sqlite"
           config:
-            path: "./data/cortex.db"
+            path: "./data/docket.db"
             enableWAL: true
             busyTimeout: 5000
 
@@ -40,7 +40,7 @@ cortex:
       default: "filesystem"
       providers:
         filesystem:
-          adapter: "@cortex/blob-filesystem"
+          adapter: "@docket/blob-filesystem"
           config:
             basePath: "./data/blobs"
             maxFileSize: "100mb"
@@ -49,7 +49,7 @@ cortex:
       default: "in-memory"
       providers:
         in-memory:
-          adapter: "@cortex/queue-memory"
+          adapter: "@docket/queue-memory"
           config:
             maxConcurrent: 5
             retryAttempts: 3

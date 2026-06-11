@@ -13,8 +13,8 @@ describe('EmbedderAdapter Contract', () => {
     const config = loadConfig();
     registry = new AdapterRegistry();
 
-    const testAdapter = process.env.ADAPTER || config.cortex.adapters.embedder.default;
-    const providerConfig = config.cortex.adapters.embedder.providers[testAdapter];
+    const testAdapter = process.env.ADAPTER || config.docket.adapters.embedder.default;
+    const providerConfig = config.docket.adapters.embedder.providers[testAdapter];
 
     embedder = await registry.loadAdapter('embedder', testAdapter, providerConfig);
   });

@@ -13,8 +13,8 @@ describe('LlmAdapter Contract', () => {
     const config = loadConfig();
     registry = new AdapterRegistry();
 
-    const testAdapter = process.env.ADAPTER || config.cortex.adapters.llm.default;
-    const providerConfig = config.cortex.adapters.llm.providers[testAdapter];
+    const testAdapter = process.env.ADAPTER || config.docket.adapters.llm.default;
+    const providerConfig = config.docket.adapters.llm.providers[testAdapter];
 
     llm = await registry.loadAdapter('llm', testAdapter, providerConfig);
   });

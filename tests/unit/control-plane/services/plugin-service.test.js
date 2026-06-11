@@ -9,7 +9,7 @@ const path = require('path');
 const os = require('os');
 
 function createFakeAdapter(name, category, version = '0.1.0') {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cortex-test-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'docket-test-'));
   const code = `
     class FakeAdapter {
       constructor(config) {
@@ -24,7 +24,7 @@ function createFakeAdapter(name, category, version = '0.1.0') {
           version: '${version}',
           category: '${category}',
           capabilities: ['test'],
-          cortexCompatibility: '>=0.1.0'
+          docketCompatibility: '>=0.1.0'
         };
       }
     }
@@ -67,7 +67,7 @@ describe('PluginService', () => {
     });
 
     it('returns errors for missing metadata', async () => {
-      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cortex-test-'));
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'docket-test-'));
       fs.writeFileSync(
         path.join(dir, 'index.js'),
         'class NoMeta {}\nmodule.exports = { NoMeta };'

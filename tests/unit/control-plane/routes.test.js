@@ -136,7 +136,7 @@ describe('Control Plane Routes', () => {
         .get('/admin/metrics')
         .expect(200);
 
-      expect(response.text).toContain('cortex_metrics');
+      expect(response.text).toContain('docket_metrics');
       expect(response.headers['content-type']).toMatch(/text\/plain/);
     });
   });

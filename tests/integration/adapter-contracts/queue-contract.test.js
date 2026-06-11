@@ -13,8 +13,8 @@ describe('QueueAdapter Contract', () => {
     const config = loadConfig();
     registry = new AdapterRegistry();
 
-    const testAdapter = process.env.ADAPTER || config.cortex.adapters.queue.default;
-    const providerConfig = config.cortex.adapters.queue.providers[testAdapter];
+    const testAdapter = process.env.ADAPTER || config.docket.adapters.queue.default;
+    const providerConfig = config.docket.adapters.queue.providers[testAdapter];
 
     queue = await registry.loadAdapter('queue', testAdapter, providerConfig);
   });

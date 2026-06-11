@@ -56,7 +56,7 @@ const adapterProviderSchema = z.object({
 });
 
 const configSchema = z.object({
-  cortex: z.object({
+  docket: z.object({
     version: z.string().optional(),
     server: z.object({
       port: z.number().int().min(1).max(65535).default(3000),
@@ -97,7 +97,7 @@ const configSchema = z.object({
  * Priority (low to high):
  * 1. defaults.yaml (built-in)
  * 2. config.yaml (user-provided, gitignored)
- * 3. CORTEX_* environment variables
+ * 3. DOCKET_* environment variables
  * 4. CLI arguments (future)
  */
 function loadConfig(options = {}) {
@@ -122,7 +122,7 @@ function loadConfig(options = {}) {
   // 3. Interpolate environment variables
   config = deepInterpolate(config);
 
-  // 4. Override with CORTEX_* env vars
+  // 4. Override with DOCKET_* env vars
   config = applyEnvOverrides(config);
 
   // 5. Validate
@@ -139,11 +139,11 @@ function loadConfig(options = {}) {
 }
 
 /**
- * Apply CORTEX_* environment variable overrides
- * Format: CORTEX_ADAPTERS_LLM_DEFAULT=openai
+ * Apply DOCKET_* environment variable overrides
+ * Format: DOCKET_ADAPTERS_LLM_DEFAULT=openai
  */
 function applyEnvOverrides(config) {
-  const prefix = 'CORTEX_';
+  const prefix = 'DOCKET_';
 
   for (const [key, value] of Object.entries(process.env)) {
     if (!key.startsWith(prefix)) continue;
@@ -153,8 +153,8 @@ function applyEnvOverrides(config) {
       .toLowerCase()
       .split('_');
 
-    // Env vars target config.cortex.*, not config.* directly
-    setDeep(config, ['cortex', ...path], parseEnvValue(value));
+    // Env vars target config.docket.*, not config.* directly
+    setDeep(config, ['docket', ...path], parseEnvValue(value));
   }
 
   return config;

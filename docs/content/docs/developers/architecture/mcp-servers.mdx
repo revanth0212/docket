@@ -34,13 +34,13 @@ MCP lets Claude Desktop, Cursor, Windsurf, and any MCP-compatible client interac
 │  (mcp-data)         │       │  (mcp-control)      │
 │                     │       │                     │
 │  Tools exposed:     │       │  Tools exposed:     │
-│  · cortex_query     │       │  · cortex_health    │
-│  · cortex_ingest    │       │  · cortex_config    │
-│  · cortex_get       │       │  · cortex_plugin_add│
-│  · cortex_create    │       │  · cortex_plugin_rm │
-│  · cortex_update    │       │  · cortex_rbac_list │
-│  · cortex_delete    │       │  · cortex_rbac_set  │
-│  · cortex_relate    │       │                     │
+│  · docket_query     │       │  · docket_health    │
+│  · docket_ingest    │       │  · docket_config    │
+│  · docket_get       │       │  · docket_plugin_add│
+│  · docket_create    │       │  · docket_plugin_rm │
+│  · docket_update    │       │  · docket_rbac_list │
+│  · docket_delete    │       │  · docket_rbac_set  │
+│  · docket_relate    │       │                     │
 │                     │       │  Resources exposed: │
 │  Resources exposed: │       │  · config://current │
 │  · memory://{id}    │       │  · plugin://list    │
@@ -51,7 +51,7 @@ MCP lets Claude Desktop, Cursor, Windsurf, and any MCP-compatible client interac
           │                             │
           ▼                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     CORTEX HTTP API                         │
+│                     DOCKET HTTP API                         │
 │                                                             │
 │   Data Plane (Port 3000)      Control Plane (Port 3001)     │
 │   · POST /query               · GET  /admin/health          │
@@ -69,13 +69,13 @@ For **end users** who want to query and manage their memories.
 
 | Tool | Purpose | Maps to |
 |------|---------|---------|
-| `cortex_query` | Natural language search | `POST /query` |
-| `cortex_ingest` | Ingest text or file path | `POST /ingest` |
-| `cortex_get` | Retrieve a memory by ID | `GET /memories/:id` |
-| `cortex_create` | Create a memory directly | `POST /memories` |
-| `cortex_update` | Update a memory | `PATCH /memories/:id` |
-| `cortex_delete` | Delete a memory | `DELETE /memories/:id` |
-| `cortex_relate` | Create a relation between memories | `POST /memories/:id/relations` |
+| `docket_query` | Natural language search | `POST /query` |
+| `docket_ingest` | Ingest text or file path | `POST /ingest` |
+| `docket_get` | Retrieve a memory by ID | `GET /memories/:id` |
+| `docket_create` | Create a memory directly | `POST /memories` |
+| `docket_update` | Update a memory | `PATCH /memories/:id` |
+| `docket_delete` | Delete a memory | `DELETE /memories/:id` |
+| `docket_relate` | Create a relation between memories | `POST /memories/:id/relations` |
 
 ### Resources
 
@@ -89,7 +89,7 @@ For **end users** who want to query and manage their memories.
 ```
 User: "What did I photograph last week?"
 
-Claude → calls cortex_query({
+Claude → calls docket_query({
   question: "What did I photograph last week?",
   temporal: { dateFrom: "2026-05-03" }
 })
@@ -111,12 +111,12 @@ For **operators and developers** who manage the Docket instance.
 
 | Tool | Purpose | Maps to |
 |------|---------|---------|
-| `cortex_health` | Aggregated adapter health | `GET /admin/health` |
-| `cortex_config` | View or reload runtime config | `GET/POST /admin/config` |
-| `cortex_plugin_add` | Onboard a new adapter | `POST /admin/plugins` |
-| `cortex_plugin_rm` | Deregister an adapter | `DELETE /admin/plugins/:name` |
-| `cortex_rbac_list` | List access policies | `GET /admin/rbac/policies` |
-| `cortex_rbac_set` | Create or update a policy | `POST /admin/rbac/policies` |
+| `docket_health` | Aggregated adapter health | `GET /admin/health` |
+| `docket_config` | View or reload runtime config | `GET/POST /admin/config` |
+| `docket_plugin_add` | Onboard a new adapter | `POST /admin/plugins` |
+| `docket_plugin_rm` | Deregister an adapter | `DELETE /admin/plugins/:name` |
+| `docket_rbac_list` | List access policies | `GET /admin/rbac/policies` |
+| `docket_rbac_set` | Create or update a policy | `POST /admin/rbac/policies` |
 
 ### Resources
 
@@ -131,8 +131,8 @@ For **operators and developers** who manage the Docket instance.
 ```
 User: "Register the Groq LLM adapter with my API key."
 
-Claude → calls cortex_plugin_add({
-  packageName: "cortex-llm-groq",
+Claude → calls docket_plugin_add({
+  packageName: "docket-llm-groq",
   config: { apiKey: "gsk_...", model: "llama3-70b-8192" }
 })
 
@@ -161,7 +161,7 @@ MCP servers are **thin wrappers** around the existing HTTP API:
 ┌─────────────────────────────┐
 │  MCP Request (JSON-RPC)     │
 │  {                          │
-│    "tool": "cortex_query",  │
+│    "tool": "docket_query",  │
 │    "args": { ... }          │
 │  }                          │
 └───────────┬─────────────────┘

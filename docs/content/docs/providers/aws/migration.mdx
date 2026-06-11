@@ -11,10 +11,10 @@ description: Migrate to or from AWS.
 
 ```bash
 # Export SQLite
-sqlite3 data/cortex.db ".dump" > local-export.sql
+sqlite3 data/docket.db ".dump" > local-export.sql
 
 # Export blobs
-aws s3 sync data/blobs s3://cortex-blobs-your-account-id
+aws s3 sync data/blobs s3://docket-blobs-your-account-id
 ```
 
 ### 2. Create AWS Resources
@@ -31,15 +31,15 @@ DynamoDB is schemaless — no SQL import. Use a script to read SQLite and write 
 
 ```bash
 node scripts/migrate-sqlite-to-dynamodb.js \
-  --source data/cortex.db \
+  --source data/docket.db \
   --region us-east-1 \
-  --table cortex
+  --table docket
 ```
 
 ### 4. Switch Config
 
 ```yaml
-cortex:
+docket:
   adapters:
     llm:
       default: "aws-bedrock"
@@ -65,7 +65,7 @@ npm run doctor
 
 1. Export D1 to SQL:
 ```bash
-wrangler d1 export cortex-db --output=d1-export.sql
+wrangler d1 export docket-db --output=d1-export.sql
 ```
 
 2. Convert SQL to DynamoDB item format (script needed)
@@ -105,7 +105,7 @@ Switch back instantly if AWS doesn't meet your needs.
 Use global tables:
 ```bash
 aws dynamodb create-global-table \
-  --global-table-name cortex \
+  --global-table-name docket \
   --replication-group RegionName=us-east-1 RegionName=eu-west-1
 ```
 

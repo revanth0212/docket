@@ -1,7 +1,7 @@
-# Cortex Default Configuration
+# Docket Default Configuration
 # Works out of the box with zero setup — just start Ollama locally
 
-cortex:
+docket:
   version: "0.2.0"
 
   server:
@@ -88,7 +88,7 @@ cortex:
       default: "ollama"
       providers:
         ollama:
-          adapter: "@cortex/llm-ollama"
+          adapter: "@docket/llm-ollama"
           config:
             baseUrl: "http://localhost:11434"
             model: "llama3.2"
@@ -96,28 +96,28 @@ cortex:
             # For insight generation
             systemPrompt: "You are a helpful assistant analyzing personal memories."
         lm-studio:
-          adapter: "@cortex/llm-openai-compatible"
+          adapter: "@docket/llm-openai-compatible"
           config:
             baseUrl: "http://localhost:1234/v1"
             model: "local-model"
             timeout: 30000
         openai:
-          adapter: "@cortex/llm-openai-compatible"
+          adapter: "@docket/llm-openai-compatible"
           config:
             baseUrl: "https://api.openai.com/v1"
             apiKey: "${OPENAI_API_KEY:-}"
             model: "gpt-4o-mini"
             timeout: 30000
         kimi:
-          adapter: "@cortex/llm-openai-compatible"
+          adapter: "@docket/llm-openai-compatible"
           config:
             baseUrl: "https://api.moonshot.cn/v1"
-            apiKey: "${CORTEX_KIMI_API_KEY:-}"
+            apiKey: "${DOCKET_KIMI_API_KEY:-}"
             model: "kimi-k2"
             timeout: 60000
         # --- Cloud provider LLM options ---
         aws-bedrock:
-          adapter: "@cortex/llm-aws-bedrock"
+          adapter: "@docket/llm-aws-bedrock"
           config:
             region: "${AWS_REGION:-us-east-1}"
             accessKeyId: "${AWS_ACCESS_KEY_ID:-}"
@@ -125,14 +125,14 @@ cortex:
             model: "anthropic.claude-3-5-sonnet-20241022-v2:0"
             timeout: 60000
         cloudflare-workers-ai:
-          adapter: "@cortex/llm-cloudflare-workers-ai"
+          adapter: "@docket/llm-cloudflare-workers-ai"
           config:
             accountId: "${CF_ACCOUNT_ID:-}"
             apiToken: "${CF_API_TOKEN:-}"
             model: "@cf/meta/llama-3.1-8b-instruct"
             timeout: 30000
         gcp-vertex-ai:
-          adapter: "@cortex/llm-gcp-vertex"
+          adapter: "@docket/llm-gcp-vertex"
           config:
             projectId: "${GCP_PROJECT_ID:-}"
             location: "${GCP_LOCATION:-us-central1}"
@@ -140,7 +140,7 @@ cortex:
             credentialsPath: "${GOOGLE_APPLICATION_CREDENTIALS:-}"
             timeout: 60000
         azure-openai:
-          adapter: "@cortex/llm-azure-openai"
+          adapter: "@docket/llm-azure-openai"
           config:
             endpoint: "${AZURE_OPENAI_ENDPOINT:-}"
             apiKey: "${AZURE_OPENAI_API_KEY:-}"
@@ -152,20 +152,20 @@ cortex:
       default: "ollama"
       providers:
         ollama:
-          adapter: "@cortex/embedder-ollama"
+          adapter: "@docket/embedder-ollama"
           config:
             baseUrl: "http://localhost:11434"
             model: "nomic-embed-text"
             dimensions: 768
         lm-studio:
-          adapter: "@cortex/embedder-openai-compatible"
+          adapter: "@docket/embedder-openai-compatible"
           config:
             baseUrl: "http://localhost:1234/v1"
             model: "local-model"
             dimensions: 768
             timeout: 30000
         openai:
-          adapter: "@cortex/embedder-openai-compatible"
+          adapter: "@docket/embedder-openai-compatible"
           config:
             baseUrl: "https://api.openai.com/v1"
             apiKey: "${OPENAI_API_KEY:-}"
@@ -174,7 +174,7 @@ cortex:
             timeout: 30000
         # --- Cloud provider embedder options ---
         aws-bedrock:
-          adapter: "@cortex/embedder-aws-bedrock"
+          adapter: "@docket/embedder-aws-bedrock"
           config:
             region: "${AWS_REGION:-us-east-1}"
             accessKeyId: "${AWS_ACCESS_KEY_ID:-}"
@@ -183,7 +183,7 @@ cortex:
             dimensions: 1024
             timeout: 30000
         cloudflare-workers-ai:
-          adapter: "@cortex/embedder-cloudflare-workers-ai"
+          adapter: "@docket/embedder-cloudflare-workers-ai"
           config:
             accountId: "${CF_ACCOUNT_ID:-}"
             apiToken: "${CF_API_TOKEN:-}"
@@ -191,7 +191,7 @@ cortex:
             dimensions: 768
             timeout: 30000
         gcp-vertex-ai:
-          adapter: "@cortex/embedder-gcp-vertex"
+          adapter: "@docket/embedder-gcp-vertex"
           config:
             projectId: "${GCP_PROJECT_ID:-}"
             location: "${GCP_LOCATION:-us-central1}"
@@ -200,7 +200,7 @@ cortex:
             credentialsPath: "${GOOGLE_APPLICATION_CREDENTIALS:-}"
             timeout: 30000
         azure-openai:
-          adapter: "@cortex/embedder-azure-openai"
+          adapter: "@docket/embedder-azure-openai"
           config:
             endpoint: "${AZURE_OPENAI_ENDPOINT:-}"
             apiKey: "${AZURE_OPENAI_API_KEY:-}"
@@ -213,53 +213,53 @@ cortex:
       default: "sqlite"
       providers:
         sqlite:
-          adapter: "@cortex/store-sqlite"
+          adapter: "@docket/store-sqlite"
           config:
-            path: "./data/cortex.db"
+            path: "./data/docket.db"
             enableWAL: true
             busyTimeout: 5000
         # --- Cloud provider store options ---
         cloudflare-d1:
-          adapter: "@cortex/store-cloudflare-d1"
+          adapter: "@docket/store-cloudflare-d1"
           config:
             accountId: "${CF_ACCOUNT_ID:-}"
             databaseId: "${CF_D1_DATABASE_ID:-}"
             apiToken: "${CF_API_TOKEN:-}"
         aws-dynamodb:
-          adapter: "@cortex/store-dynamodb"
+          adapter: "@docket/store-dynamodb"
           config:
             region: "${AWS_REGION:-us-east-1}"
-            tableName: "${DYNAMODB_TABLE:-cortex}"
+            tableName: "${DYNAMODB_TABLE:-docket}"
             accessKeyId: "${AWS_ACCESS_KEY_ID:-}"
             secretAccessKey: "${AWS_SECRET_ACCESS_KEY:-}"
         postgres:
-          adapter: "@cortex/store-postgres"
+          adapter: "@docket/store-postgres"
           config:
             connectionString: "${DATABASE_URL:-}"
             poolSize: 10
         gcp-firestore:
-          adapter: "@cortex/store-firestore"
+          adapter: "@docket/store-firestore"
           config:
             projectId: "${GCP_PROJECT_ID:-}"
             databaseId: "${GCP_FIRESTORE_DATABASE:-(default)}"
         azure-cosmos:
-          adapter: "@cortex/store-cosmos"
+          adapter: "@docket/store-cosmos"
           config:
             endpoint: "${AZURE_COSMOS_ENDPOINT:-}"
             key: "${AZURE_COSMOS_KEY:-}"
-            databaseId: "${AZURE_COSMOS_DATABASE:-cortex}"
+            databaseId: "${AZURE_COSMOS_DATABASE:-docket}"
 
     blob:
       default: "filesystem"
       providers:
         filesystem:
-          adapter: "@cortex/blob-filesystem"
+          adapter: "@docket/blob-filesystem"
           config:
             basePath: "./data/blobs"
             maxFileSize: "100mb"
         # --- Cloud provider blob options ---
         aws-s3:
-          adapter: "@cortex/blob-s3"
+          adapter: "@docket/blob-s3"
           config:
             endpoint: "${S3_ENDPOINT:-}"
             bucket: "${S3_BUCKET:-}"
@@ -267,7 +267,7 @@ cortex:
             secretAccessKey: "${S3_SECRET_KEY:-}"
             region: "${S3_REGION:-}"
         cloudflare-r2:
-          adapter: "@cortex/blob-s3"
+          adapter: "@docket/blob-s3"
           config:
             endpoint: "${R2_ENDPOINT:-}"
             bucket: "${R2_BUCKET:-}"
@@ -275,50 +275,50 @@ cortex:
             secretAccessKey: "${R2_SECRET_ACCESS_KEY:-}"
             region: "auto"
         gcp-cloud-storage:
-          adapter: "@cortex/blob-gcs"
+          adapter: "@docket/blob-gcs"
           config:
             projectId: "${GCP_PROJECT_ID:-}"
             bucket: "${GCS_BUCKET:-}"
         azure-blob:
-          adapter: "@cortex/blob-azure"
+          adapter: "@docket/blob-azure"
           config:
             connectionString: "${AZURE_STORAGE_CONNECTION_STRING:-}"
-            containerName: "${AZURE_STORAGE_CONTAINER:-cortex-blobs}"
+            containerName: "${AZURE_STORAGE_CONTAINER:-docket-blobs}"
 
     queue:
       default: "in-memory"
       providers:
         in-memory:
-          adapter: "@cortex/queue-memory"
+          adapter: "@docket/queue-memory"
           config:
             maxConcurrent: 5
             retryAttempts: 3
             retryDelay: 1000
         # --- Cloud provider queue options ---
         aws-sqs:
-          adapter: "@cortex/queue-sqs"
+          adapter: "@docket/queue-sqs"
           config:
             region: "${AWS_REGION:-us-east-1}"
             queueUrl: "${SQS_QUEUE_URL:-}"
             accessKeyId: "${AWS_ACCESS_KEY_ID:-}"
             secretAccessKey: "${AWS_SECRET_ACCESS_KEY:-}"
         cloudflare-queues:
-          adapter: "@cortex/queue-cloudflare"
+          adapter: "@docket/queue-cloudflare"
           config:
             accountId: "${CF_ACCOUNT_ID:-}"
-            queueName: "${CF_QUEUE_NAME:-cortex}"
+            queueName: "${CF_QUEUE_NAME:-docket}"
             apiToken: "${CF_API_TOKEN:-}"
         redis:
-          adapter: "@cortex/queue-redis"
+          adapter: "@docket/queue-redis"
           config:
             url: "${REDIS_URL:-redis://localhost:6379}"
         gcp-pubsub:
-          adapter: "@cortex/queue-pubsub"
+          adapter: "@docket/queue-pubsub"
           config:
             projectId: "${GCP_PROJECT_ID:-}"
-            topicName: "${PUBSUB_TOPIC:-cortex}"
+            topicName: "${PUBSUB_TOPIC:-docket}"
         azure-service-bus:
-          adapter: "@cortex/queue-service-bus"
+          adapter: "@docket/queue-service-bus"
           config:
             connectionString: "${AZURE_SERVICE_BUS_CONNECTION_STRING:-}"
-            queueName: "${AZURE_SERVICE_BUS_QUEUE:-cortex}"
+            queueName: "${AZURE_SERVICE_BUS_QUEUE:-docket}"

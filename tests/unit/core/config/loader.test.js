@@ -58,10 +58,10 @@ describe('mergeDeep', () => {
 
   it('deep merges nested objects', () => {
     const result = mergeDeep(
-      { cortex: { server: { port: 3000 } } },
-      { cortex: { server: { host: '0.0.0.0' } } }
+      { docket: { server: { port: 3000 } } },
+      { docket: { server: { host: '0.0.0.0' } } }
     );
-    expect(result.cortex.server).toEqual({ port: 3000, host: '0.0.0.0' });
+    expect(result.docket.server).toEqual({ port: 3000, host: '0.0.0.0' });
   });
 
   it('handles null target', () => {
@@ -81,7 +81,7 @@ describe('loadConfig', () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cortex-config-test-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'docket-config-test-'));
   });
 
   afterEach(() => {
@@ -97,97 +97,97 @@ describe('loadConfig', () => {
 
   it('loads defaults.yaml', () => {
     writeDefaults(`
-cortex:
+docket:
   version: "0.1.0"
   adapters:
     llm:
       default: ollama
       providers:
         ollama:
-          adapter: "@cortex/llm-ollama"
+          adapter: "@docket/llm-ollama"
           config:
             baseUrl: "http://localhost:11434"
     embedder:
       default: ollama
       providers:
         ollama:
-          adapter: "@cortex/embedder-ollama"
+          adapter: "@docket/embedder-ollama"
           config: {}
     store:
       default: sqlite
       providers:
         sqlite:
-          adapter: "@cortex/store-sqlite"
+          adapter: "@docket/store-sqlite"
           config:
-            path: "./data/cortex.db"
+            path: "./data/docket.db"
     blob:
       default: filesystem
       providers:
         filesystem:
-          adapter: "@cortex/blob-filesystem"
+          adapter: "@docket/blob-filesystem"
           config: {}
     queue:
       default: in-memory
       providers:
         in-memory:
-          adapter: "@cortex/queue-memory"
+          adapter: "@docket/queue-memory"
           config: {}
 `);
 
     const config = loadConfig({ configDir: tmpDir });
-    expect(config.cortex.adapters.llm.default).toBe('ollama');
-    expect(config.cortex.adapters.store.default).toBe('sqlite');
+    expect(config.docket.adapters.llm.default).toBe('ollama');
+    expect(config.docket.adapters.store.default).toBe('sqlite');
   });
 
-  it('applies CORTEX_* env overrides', () => {
+  it('applies DOCKET_* env overrides', () => {
     writeDefaults(`
-cortex:
+docket:
   version: "0.1.0"
   adapters:
     llm:
       default: ollama
       providers:
         ollama:
-          adapter: "@cortex/llm-ollama"
+          adapter: "@docket/llm-ollama"
           config:
             baseUrl: "http://localhost:11434"
     embedder:
       default: ollama
       providers:
         ollama:
-          adapter: "@cortex/embedder-ollama"
+          adapter: "@docket/embedder-ollama"
           config: {}
     store:
       default: sqlite
       providers:
         sqlite:
-          adapter: "@cortex/store-sqlite"
+          adapter: "@docket/store-sqlite"
           config: {}
     blob:
       default: filesystem
       providers:
         filesystem:
-          adapter: "@cortex/blob-filesystem"
+          adapter: "@docket/blob-filesystem"
           config: {}
     queue:
       default: in-memory
       providers:
         in-memory:
-          adapter: "@cortex/queue-memory"
+          adapter: "@docket/queue-memory"
           config: {}
 `);
 
-    process.env.CORTEX_ADAPTERS_LLM_DEFAULT = 'groq';
-    process.env.CORTEX_SERVER_PORT = '8080';
+    process.env.DOCKET_ADAPTERS_LLM_DEFAULT = 'groq';
+    process.env.DOCKET_SERVER_PORT = '8080';
 
     const config = loadConfig({ configDir: tmpDir });
-    expect(config.cortex.adapters.llm.default).toBe('groq');
-    expect(config.cortex.server.port).toBe(8080);
+    expect(config.docket.adapters.llm.default).toBe('groq');
+    expect(config.docket.server.port).toBe(8080);
   });
 
   it('throws for invalid config', () => {
     writeDefaults(`
-cortex:
+docket:
   adapters: {}
 `);
 
@@ -197,43 +197,43 @@ cortex:
   it('interpolates env vars in config values', () => {
     process.env.API_KEY = 'secret123';
     writeDefaults(`
-cortex:
+docket:
   version: "0.1.0"
   adapters:
     llm:
       default: groq
       providers:
         groq:
-          adapter: "cortex-llm-groq"
+          adapter: "docket-llm-groq"
           config:
             apiKey: "\${API_KEY}"
     embedder:
       default: ollama
       providers:
         ollama:
-          adapter: "@cortex/embedder-ollama"
+          adapter: "@docket/embedder-ollama"
           config: {}
     store:
       default: sqlite
       providers:
         sqlite:
-          adapter: "@cortex/store-sqlite"
+          adapter: "@docket/store-sqlite"
           config: {}
     blob:
       default: filesystem
       providers:
         filesystem:
-          adapter: "@cortex/blob-filesystem"
+          adapter: "@docket/blob-filesystem"
           config: {}
     queue:
       default: in-memory
       providers:
         in-memory:
-          adapter: "@cortex/queue-memory"
+          adapter: "@docket/queue-memory"
           config: {}
 `);
 
     const config = loadConfig({ configDir: tmpDir });
-    expect(config.cortex.adapters.llm.providers.groq.config.apiKey).toBe('secret123');
+    expect(config.docket.adapters.llm.providers.groq.config.apiKey).toBe('secret123');
   });
 });

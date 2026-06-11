@@ -13,8 +13,8 @@ describe('StoreAdapter Contract', () => {
     const config = loadConfig();
     registry = new AdapterRegistry();
 
-    const testAdapter = process.env.ADAPTER || config.cortex.adapters.store.default;
-    const providerConfig = config.cortex.adapters.store.providers[testAdapter];
+    const testAdapter = process.env.ADAPTER || config.docket.adapters.store.default;
+    const providerConfig = config.docket.adapters.store.providers[testAdapter];
 
     store = await registry.loadAdapter('store', testAdapter, providerConfig);
   });

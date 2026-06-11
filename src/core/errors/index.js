@@ -1,14 +1,14 @@
 // src/core/errors/index.js
-// Domain-specific error classes for Cortex
+// Domain-specific error classes for Docket
 
 /**
- * Base error for all Cortex errors
+ * Base error for all Docket errors
  */
-class CortexError extends Error {
+class DocketError extends Error {
   constructor(message, options = {}) {
     super(message);
-    this.name = 'CortexError';
-    this.code = options.code || 'CORTEX_ERROR';
+    this.name = 'DocketError';
+    this.code = options.code || 'DOCKET_ERROR';
     this.statusCode = options.statusCode || 500;
     this.cause = options.cause || null;
     this.context = options.context || {};
@@ -37,7 +37,7 @@ class CortexError extends Error {
 /**
  * Validation error — bad user input
  */
-class ValidationError extends CortexError {
+class ValidationError extends DocketError {
   constructor(message, options = {}) {
     super(message, { ...options, code: 'VALIDATION_ERROR', statusCode: 400 });
     this.name = 'ValidationError';
@@ -47,7 +47,7 @@ class ValidationError extends CortexError {
 /**
  * Adapter error — external service failure
  */
-class AdapterError extends CortexError {
+class AdapterError extends DocketError {
   constructor(message, options = {}) {
     super(message, { ...options, code: 'ADAPTER_ERROR', statusCode: 502 });
     this.name = 'AdapterError';
@@ -58,7 +58,7 @@ class AdapterError extends CortexError {
 /**
  * Not found error — resource doesn't exist
  */
-class NotFoundError extends CortexError {
+class NotFoundError extends DocketError {
   constructor(message, options = {}) {
     super(message, { ...options, code: 'NOT_FOUND', statusCode: 404 });
     this.name = 'NotFoundError';
@@ -70,7 +70,7 @@ class NotFoundError extends CortexError {
 /**
  * Ingestion error — pipeline failure
  */
-class IngestionError extends CortexError {
+class IngestionError extends DocketError {
   constructor(message, options = {}) {
     super(message, { ...options, code: 'INGESTION_ERROR', statusCode: 422 });
     this.name = 'IngestionError';
@@ -82,7 +82,7 @@ class IngestionError extends CortexError {
 /**
  * Query error — search/retrieval failure
  */
-class QueryError extends CortexError {
+class QueryError extends DocketError {
   constructor(message, options = {}) {
     super(message, { ...options, code: 'QUERY_ERROR', statusCode: 500 });
     this.name = 'QueryError';
@@ -93,7 +93,7 @@ class QueryError extends CortexError {
 /**
  * Configuration error — bad setup
  */
-class ConfigError extends CortexError {
+class ConfigError extends DocketError {
   constructor(message, options = {}) {
     super(message, { ...options, code: 'CONFIG_ERROR', statusCode: 500 });
     this.name = 'ConfigError';
@@ -115,7 +115,7 @@ class UnsupportedContentTypeError extends ValidationError {
 /**
  * Rate limit error
  */
-class RateLimitError extends CortexError {
+class RateLimitError extends DocketError {
   constructor(message, options = {}) {
     super(message, { ...options, code: 'RATE_LIMIT', statusCode: 429 });
     this.name = 'RateLimitError';
@@ -124,7 +124,7 @@ class RateLimitError extends CortexError {
 }
 
 module.exports = {
-  CortexError,
+  DocketError,
   ValidationError,
   AdapterError,
   NotFoundError,

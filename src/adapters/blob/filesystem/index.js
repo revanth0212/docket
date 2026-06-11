@@ -135,7 +135,7 @@ class FilesystemBlobAdapter extends BlobAdapter {
       name: 'filesystem-blob',
       version: '0.1.0',
       capabilities: ['put', 'get', 'delete', 'exists'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }

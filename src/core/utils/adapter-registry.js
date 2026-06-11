@@ -23,7 +23,7 @@ class AdapterRegistry {
     const result = {};
 
     for (const category of categories) {
-      const categoryConfig = config.cortex.adapters[category];
+      const categoryConfig = config.docket.adapters[category];
       const defaultName = categoryConfig.default;
       const providerConfig = categoryConfig.providers[defaultName];
 
@@ -80,7 +80,7 @@ class AdapterRegistry {
 
       // Check compatibility (future: semver check)
       // const coreVersion = require('../../package.json').version;
-      // if (!satisfies(coreVersion, metadata.cortexCompatibility)) {
+      // if (!satisfies(coreVersion, metadata.docketCompatibility)) {
       //   throw new AdapterError(`Incompatible adapter version`);
       // }
 
@@ -100,9 +100,9 @@ class AdapterRegistry {
    * Resolve adapter path from package name or relative path
    */
   resolveAdapterPath(category, adapterName) {
-    // Handle npm package names like @cortex/llm-ollama
-    if (adapterName.startsWith('@cortex/')) {
-      const shortName = adapterName.replace('@cortex/', '');
+    // Handle npm package names like @docket/llm-ollama
+    if (adapterName.startsWith('@docket/')) {
+      const shortName = adapterName.replace('@docket/', '');
       return path.join(
         process.cwd(),
         'src',

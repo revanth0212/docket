@@ -1,4 +1,4 @@
-# 🎯 Cortex Agent Quick Reference
+# 🎯 Docket Agent Quick Reference
 
 ## Start Here
 1. Read `AGENTS.md` — understand your role
@@ -54,7 +54,7 @@ src/server/middleware/{name}-middleware.js
 - ✅ Use dependency injection (no direct adapter imports in core)
 - ✅ Update docs for user-facing changes
 - ✅ Commit with semantic prefix: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`
-- ✅ Respect `config.cortex.memory.mode` — flat vs rich
+- ✅ Respect `config.docket.memory.mode` — flat vs rich
 - ❌ Never modify `src/core/interfaces/` without architect
 - ❌ Never use `console.log` — use `getLogger()`
 - ❌ Never hardcode config — use injected config

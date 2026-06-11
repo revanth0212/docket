@@ -27,8 +27,8 @@ async function registerControlPlaneRoutes(app, options = {}) {
   app.get('/admin/config', async () => {
     if (config) {
       return {
-        mode: config.cortex.memory?.mode || 'flat',
-        adapters: config.cortex.adapters
+        mode: config.docket.memory?.mode || 'flat',
+        adapters: config.docket.adapters
       };
     }
     return { mode: 'flat', adapters: {} };
@@ -85,7 +85,7 @@ async function registerControlPlaneRoutes(app, options = {}) {
   app.get('/admin/metrics', async (_, reply) => {
     // TODO: emit real metrics
     reply.type('text/plain');
-    return '# cortex_metrics placeholder\n';
+    return '# docket_metrics placeholder\n';
   });
 }
 
@@ -114,7 +114,7 @@ async function startControlPlane(options = {}) {
   const host = options.host ?? '0.0.0.0';
 
   await app.listen({ port, host });
-  app.log.info(`Cortex control plane listening on http://${host}:${port}`);
+  app.log.info(`Docket control plane listening on http://${host}:${port}`);
 
   return app;
 }

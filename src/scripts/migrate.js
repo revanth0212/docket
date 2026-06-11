@@ -6,18 +6,18 @@ const { loadConfig } = require('../core/config/loader');
 const { AdapterRegistry } = require('../core/utils/adapter-registry');
 
 async function main() {
-  console.log('\n🗄️  Cortex Migrations\n');
+  console.log('\n🗄️  Docket Migrations\n');
 
   const config = loadConfig();
   const registry = new AdapterRegistry();
 
-  const storeConfig = config.cortex.adapters.store.providers[config.cortex.adapters.store.default];
+  const storeConfig = config.docket.adapters.store.providers[config.docket.adapters.store.default];
   if (!storeConfig) {
     console.error('No store adapter configured');
     process.exit(1);
   }
 
-  const store = await registry.loadAdapter('store', config.cortex.adapters.store.default, storeConfig);
+  const store = await registry.loadAdapter('store', config.docket.adapters.store.default, storeConfig);
 
   const version = await store.getMigrationVersion();
   console.log(`Current migration version: ${version}`);

@@ -136,7 +136,7 @@ class S3BlobAdapter extends BlobAdapter {
       name: 's3-blob',
       version: '0.1.0',
       capabilities: ['put', 'get', 'delete', 'exists', 'presignedUrls'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }

@@ -4,7 +4,7 @@
 const { v4: uuidv4 } = require('uuid');
 
 /**
- * Generate a Cortex memory ID
+ * Generate a Docket memory ID
  * Format: mem_{uuid} (first 8 chars of UUID for readability)
  */
 function generateMemoryId() {

@@ -12,7 +12,7 @@ describe('validateManifest', () => {
     version: '0.1.0',
     category: 'llm',
     capabilities: ['chat'],
-    cortexCompatibility: '>=0.1.0 <0.3.0'
+    docketCompatibility: '>=0.1.0 <0.3.0'
   };
 
   it('returns valid for a correct manifest', () => {
@@ -63,13 +63,13 @@ describe('validateManifest', () => {
     expect(errors[0]).toMatch(/capabilities/);
   });
 
-  it('rejects missing cortexCompatibility', () => {
+  it('rejects missing docketCompatibility', () => {
     const { valid, errors } = validateManifest({
       ...validManifest,
-      cortexCompatibility: undefined
+      docketCompatibility: undefined
     });
     expect(valid).toBe(false);
-    expect(errors[0]).toMatch(/cortexCompatibility/);
+    expect(errors[0]).toMatch(/docketCompatibility/);
   });
 
   it('rejects invalid repository URL', () => {
@@ -83,24 +83,24 @@ describe('validateManifest', () => {
 });
 
 describe('inferCategory', () => {
-  it('infers llm from cortex-llm-groq', () => {
-    expect(inferCategory('cortex-llm-groq')).toBe('llm');
+  it('infers llm from docket-llm-groq', () => {
+    expect(inferCategory('docket-llm-groq')).toBe('llm');
   });
 
-  it('infers embedder from cortex-embedder-cohere', () => {
-    expect(inferCategory('cortex-embedder-cohere')).toBe('embedder');
+  it('infers embedder from docket-embedder-cohere', () => {
+    expect(inferCategory('docket-embedder-cohere')).toBe('embedder');
   });
 
-  it('infers store from @myorg/cortex-store-qdrant', () => {
-    expect(inferCategory('@myorg/cortex-store-qdrant')).toBe('store');
+  it('infers store from @myorg/docket-store-qdrant', () => {
+    expect(inferCategory('@myorg/docket-store-qdrant')).toBe('store');
   });
 
-  it('infers blob from cortex-blob-s3', () => {
-    expect(inferCategory('cortex-blob-s3')).toBe('blob');
+  it('infers blob from docket-blob-s3', () => {
+    expect(inferCategory('docket-blob-s3')).toBe('blob');
   });
 
-  it('infers queue from cortex-queue-redis', () => {
-    expect(inferCategory('cortex-queue-redis')).toBe('queue');
+  it('infers queue from docket-queue-redis', () => {
+    expect(inferCategory('docket-queue-redis')).toBe('queue');
   });
 
   it('returns null for unknown names', () => {
@@ -109,11 +109,11 @@ describe('inferCategory', () => {
 });
 
 describe('suggestPackageName', () => {
-  it('suggests cortex-llm-groq', () => {
-    expect(suggestPackageName('llm', 'groq')).toBe('cortex-llm-groq');
+  it('suggests docket-llm-groq', () => {
+    expect(suggestPackageName('llm', 'groq')).toBe('docket-llm-groq');
   });
 
-  it('suggests cortex-store-postgres', () => {
-    expect(suggestPackageName('store', 'postgres')).toBe('cortex-store-postgres');
+  it('suggests docket-store-postgres', () => {
+    expect(suggestPackageName('store', 'postgres')).toBe('docket-store-postgres');
   });
 });

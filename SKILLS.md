@@ -1,4 +1,4 @@
-# Cortex Agent Skills Registry
+# Docket Agent Skills Registry
 
 > **Version**: 0.2.0
 > **Purpose**: Define capabilities, knowledge boundaries, and tool proficiencies for each agent role

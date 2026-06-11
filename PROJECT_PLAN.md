@@ -1,4 +1,4 @@
-# Cortex Project Plan v0.2.0
+# Docket Project Plan v0.2.0
 
 > **Approach**: Vibe Coding with AI Agents
 > **Timeline**: 6-8 weeks (single focused developer) or 3-4 weeks (two agents)
@@ -164,7 +164,7 @@ After this phase:
 |------|-------|-----------|--------------|
 | Implement standalone platform | backend-agent | 3h | `src/platform/standalone/index.js`, `bin.js` |
 | Create Dockerfile.standalone | devops-agent | 2h | `docker/Dockerfile.standalone` |
-| Create docker-compose.yml (Ollama + Cortex) | devops-agent | 1h | `docker/docker-compose.yml` |
+| Create docker-compose.yml (Ollama + Docket) | devops-agent | 1h | `docker/docker-compose.yml` |
 | Implement AWS Lambda handler | devops-agent | 3h | `src/platform/serverless/aws-lambda/handler.js` |
 | Implement Cloudflare Workers handler | devops-agent | 3h | `src/platform/serverless/cloudflare-workers/handler.js` |
 | Add cold-start optimization for serverless | devops-agent | 2h | Adapter caching, connection pooling |
@@ -199,7 +199,7 @@ After this phase:
 
 set -e
 
-echo "🧠 Cortex Hello World Verification"
+echo "🧠 Docket Hello World Verification"
 
 # 1. Start services
 docker-compose -f docker/docker-compose.yml up -d
@@ -229,7 +229,7 @@ echo "🎉 Hello World complete!"
 
 set -e
 
-echo "🧠 Cortex Rich Memory Verification"
+echo "🧠 Docket Rich Memory Verification"
 
 # 1. Ingest with sector hint
 curl -X POST http://localhost:3000/ingest \
@@ -280,13 +280,13 @@ echo "🎉 Rich Memory complete!"
 
 ## Competitive Analysis: Rowboat
 
-[Rowboat](https://github.com/rowboatlabs/rowboat) is a YC S24 "open-source AI coworker" with significant UX overlap. Studying it surfaces gaps in Cortex's roadmap.
+[Rowboat](https://github.com/rowboatlabs/rowboat) is a YC S24 "open-source AI coworker" with significant UX overlap. Studying it surfaces gaps in Docket's roadmap.
 
 ### What Rowboat Does Well
 
-| Capability | Rowboat | Cortex v0.2.0 | Gap |
+| Capability | Rowboat | Docket v0.2.0 | Gap |
 |------------|---------|---------------|-----|
-| **Zero-setup onboarding** | Download binary, run, guided config | `npm install` + `npm run setup` + `npm run doctor` | Cortex requires Node.js; Rowboat ships binaries. Plan: add `cortex` CLI + Homebrew + Docker. |
+| **Zero-setup onboarding** | Download binary, run, guided config | `npm install` + `npm run setup` + `npm run doctor` | Docket requires Node.js; Rowboat ships binaries. Plan: add `docket` CLI + Homebrew + Docker. |
 | **Knowledge graph visualization** | Native graph UI, editable nodes | None planned yet | **Add:** Graph visualization endpoint + web UI component. |
 | **Meeting prep & notes** | Auto-briefs from prior decisions, action items | None | **Add:** Meeting connector + prep service. |
 | **Voice memos** | Deepgram input, ElevenLabs output | None | **Add:** Audio ingestion via Whisper/Deepgram adapter. |
@@ -296,13 +296,13 @@ echo "🎉 Rich Memory complete!"
 | **Web search** | Exa integration for live search | None | **Add:** Search adapter interface + Exa/Google implementations. |
 | **Gmail/Calendar/Drive** | Native Google integrations | Generic IMAP only | **Add:** Google Workspace connectors. |
 | **Fireflies** | Meeting transcription ingestion | None | **Add:** Fireflies connector. |
-| **MCP ecosystem** | Composio + MCP for external tools | Planned (Data + Control plane MCP) | Cortex is ahead architecturally but needs more tool implementations. |
+| **MCP ecosystem** | Composio + MCP for external tools | Planned (Data + Control plane MCP) | Docket is ahead architecturally but needs more tool implementations. |
 | **Model flexibility** | Ollama, LM Studio, or hosted via API key | Ollama + OpenAI-compatible planned | Parity via adapter registry. |
 
 ### Key Takeaways
 
-1. **Onboarding friction matters.** Rowboat wins by shipping a `.app` / `.exe`. Cortex must offer `brew install cortex` and a Docker one-liner.
-2. **Output, not just storage.** Rowboat generates artifacts (decks, emails). Cortex currently plans ingestion + query only. Add artifact generation.
+1. **Onboarding friction matters.** Rowboat wins by shipping a `.app` / `.exe`. Docket must offer `brew install docket` and a Docker one-liner.
+2. **Output, not just storage.** Rowboat generates artifacts (decks, emails). Docket currently plans ingestion + query only. Add artifact generation.
 3. **Voice and meeting workflows are table stakes.** Modern second-brain tools must capture voice memos and meeting context.
 4. **Markdown as lingua franca.** Obsidian-compatible export makes data portable and trustable.
 
@@ -310,7 +310,7 @@ echo "🎉 Rich Memory complete!"
 
 ## Cloud Provider Coverage Strategy
 
-**Goal**: When a user chooses a cloud provider, they should be able to run Cortex entirely on that provider's stack. No cross-cloud dependencies required.
+**Goal**: When a user chooses a cloud provider, they should be able to run Docket entirely on that provider's stack. No cross-cloud dependencies required.
 
 ### Coverage Matrix
 
@@ -328,7 +328,7 @@ echo "🎉 Rich Memory complete!"
 Instead of configuring 5 adapters individually, users can set a single provider preset:
 
 ```yaml
-cortex:
+docket:
   provider: "cloudflare"  # or aws, gcp, azure, local
   # All 5 adapter defaults resolve automatically
 ```
@@ -342,20 +342,20 @@ This maps to the provider's native services and injects the correct adapter conf
 **Problem**: Users start locally (SQLite, filesystem, Ollama) and later want to move to hosted services (D1, R2, Workers AI) without losing data.
 
 ### Phase 1: Export / Import Scripts
-- [ ] `cortex export --format=jsonl` — dump all memories, relations, blobs, and queue jobs
-- [ ] `cortex import --format=jsonl` — load into a new store adapter
-- [ ] `cortex migrate-store --from=sqlite --to=cloudflare-d1` — adapter-aware migration with schema translation
-- [ ] `cortex migrate-blob --from=filesystem --to=r2` — stream files from local disk to remote blob store
+- [ ] `docket export --format=jsonl` — dump all memories, relations, blobs, and queue jobs
+- [ ] `docket import --format=jsonl` — load into a new store adapter
+- [ ] `docket migrate-store --from=sqlite --to=cloudflare-d1` — adapter-aware migration with schema translation
+- [ ] `docket migrate-blob --from=filesystem --to=r2` — stream files from local disk to remote blob store
 
 ### Phase 2: Config Transition
-- [ ] `cortex config switch --profile=hosted` — switch between local and hosted config profiles
+- [ ] `docket config switch --profile=hosted` — switch between local and hosted config profiles
 - [ ] Config profiles stored in `config/profiles/local.yaml` and `config/profiles/hosted.yaml`
-- [ ] `cortex doctor --profile=hosted` — verify hosted prerequisites before cutover
+- [ ] `docket doctor --profile=hosted` — verify hosted prerequisites before cutover
 
 ### Phase 3: Live Replication (Advanced)
 - [ ] Dual-write mode: write to both local and hosted store during transition window
 - [ ] Read-from-hosted with local fallback
-- [ ] Cutover command: `cortex cutover --to=hosted` disables local writes and verifies consistency
+- [ ] Cutover command: `docket cutover --to=hosted` disables local writes and verifies consistency
 
 ### Documentation
 - [ ] Migration guide: `docs/users/hosting/migrating-from-local.md`
@@ -379,10 +379,10 @@ This maps to the provider's native services and injects the correct adapter conf
 - [ ] Audio/voice ingestion — Whisper or Deepgram adapter for voice memos
 
 ### Retrieval & Query
-- [ ] **MCP Data Plane** — Model Context Protocol server exposing query, ingest, and memory CRUD tools. Wraps the data plane REST API so Claude Desktop, Cursor, Windsurf, and other MCP clients can interact with Cortex without custom HTTP code.
+- [ ] **MCP Data Plane** — Model Context Protocol server exposing query, ingest, and memory CRUD tools. Wraps the data plane REST API so Claude Desktop, Cursor, Windsurf, and other MCP clients can interact with Docket without custom HTTP code.
 - [ ] **MCP Control Plane** — MCP server exposing admin tools: config reload, plugin onboarding, RBAC policy management, and health aggregation. Intended for admin / operator workflows in MCP-enabled IDEs.
 - [ ] VS Code extension — inline memory query and capture
-- [ ] CLI (`cortex`) — direct engine interaction, scripting
+- [ ] CLI (`docket`) — direct engine interaction, scripting
 - [ ] Streaming query responses
 - [ ] Multi-hop graph reasoning
 - [ ] Web search integration — Exa, Google, or Brave search adapter for live context
@@ -452,8 +452,8 @@ This maps to the provider's native services and injects the correct adapter conf
 - [x] Adapter registry supports npm packages
 - [x] Plugin manifest validation
 - [x] Control plane plugin onboarding endpoints
-- [ ] CLI plugin installer (`cortex plugin install groq`)
-- [ ] Auto-discovery of `cortex-*` packages in node_modules
+- [ ] CLI plugin installer (`docket plugin install groq`)
+- [ ] Auto-discovery of `docket-*` packages in node_modules
 - [ ] Verified adapter badge + extended contract test suite
 - [ ] Plugin marketplace / directory
 
@@ -547,7 +547,7 @@ Day 22-24:
 - [ ] Add web clip ingestion
 - [ ] MCP server for Claude/Cursor integration
 - [ ] VS Code extension
-- [ ] CLI (`cortex`)
+- [ ] CLI (`docket`)
 - [ ] Multi-tenancy support
 
 ## In Progress

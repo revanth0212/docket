@@ -94,7 +94,7 @@ flowchart LR
     B -->|"everything else"| E["npm package"]
     C -->|"@docket/store-sqlite"| F["src/adapters/store/sqlite/index.js"]
     D -->|"./my-custom-adapter"| G["/full/path/to/my-custom-adapter"]
-    E -->|"@myorg/cortex-llm-groq"| H["node_modules/@myorg/cortex-llm-groq"]
+    E -->|"@myorg/docket-llm-groq"| H["node_modules/@myorg/docket-llm-groq"]
 
     classDef default fill:#1e1e2e,stroke:#45475a,stroke-width:2px,color:#cdd6f4,rx:4,ry:4
     classDef input stroke:#89b4fa,stroke-width:3px
@@ -237,7 +237,7 @@ class OllamaLlmAdapter extends LlmAdapter {
       name: 'ollama-llm',
       version: '0.1.0',
       capabilities: ['chat'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }
@@ -336,13 +336,13 @@ config:
 
 This lets you commit `config.yaml` to version control without secrets.
 
-### CORTEX_* Environment Overrides
+### DOCKET_* Environment Overrides
 
-Any env var starting with `CORTEX_` overrides config automatically:
+Any env var starting with `DOCKET_` overrides config automatically:
 
 ```bash
-CORTEX_ADAPTERS_LLM_DEFAULT=openai
-CORTEX_ADAPTERS_STORE_DEFAULT=dynamodb
+DOCKET_ADAPTERS_LLM_DEFAULT=openai
+DOCKET_ADAPTERS_STORE_DEFAULT=dynamodb
 ```
 
 This is useful for CI/CD and container deployments where editing YAML is impractical.

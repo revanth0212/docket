@@ -12,7 +12,7 @@ const { generateMemoryId } = require('../../../core/utils/id-generator');
 class DynamoDBStoreAdapter extends StoreAdapter {
   constructor(config) {
     super(config);
-    this.tableName = this.config.tableName || 'cortex';
+    this.tableName = this.config.tableName || 'docket';
     this.region = this.config.region || 'us-east-1';
     this.accessKeyId = this.config.accessKeyId;
     this.secretAccessKey = this.config.secretAccessKey;
@@ -341,7 +341,7 @@ class DynamoDBStoreAdapter extends StoreAdapter {
       name: 'dynamodb-store',
       version: '0.1.0',
       capabilities: ['crud', 'vectorSearch', 'relations'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }

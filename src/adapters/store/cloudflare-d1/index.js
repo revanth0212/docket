@@ -423,7 +423,7 @@ class CloudflareD1StoreAdapter extends StoreAdapter {
       name: 'cloudflare-d1-store',
       version: '0.1.0',
       capabilities: ['crud', 'vectorSearch', 'relations', 'migrations'],
-      cortexCompatibility: '>=0.1.0 <0.3.0'
+      docketCompatibility: '>=0.1.0 <0.3.0'
     };
   }
 }
