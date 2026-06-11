@@ -157,44 +157,44 @@ async function main() {
   const command = args[0];
 
   switch (command) {
-    case 'start':
-      await cmdStart(args.slice(1));
-      break;
-    case 'health':
-      await cmdHealth();
-      break;
-    case 'doctor':
-      await cmdDoctor();
-      break;
-    case 'plugin': {
-      const sub = args[1];
-      if (sub === 'list') {
-        await cmdPluginList();
-      } else if (sub === 'add') {
-        await cmdPluginAdd(args.slice(2));
-      } else {
-        console.error('Usage: docket plugin <list|add>');
-        process.exit(1);
-      }
-      break;
+  case 'start':
+    await cmdStart(args.slice(1));
+    break;
+  case 'health':
+    await cmdHealth();
+    break;
+  case 'doctor':
+    await cmdDoctor();
+    break;
+  case 'plugin': {
+    const sub = args[1];
+    if (sub === 'list') {
+      await cmdPluginList();
+    } else if (sub === 'add') {
+      await cmdPluginAdd(args.slice(2));
+    } else {
+      console.error('Usage: docket plugin <list|add>');
+      process.exit(1);
     }
-    case 'config':
-      await cmdConfig();
-      break;
-    case 'help':
-    case '--help':
-    case '-h':
-      usage();
-      break;
-    default:
-      if (command) {
-        console.error(`Unknown command: ${command}`);
-      }
-      usage();
-      if (command && command !== 'help' && command !== '--help' && command !== '-h') {
-        process.exit(1);
-      }
-      break;
+    break;
+  }
+  case 'config':
+    await cmdConfig();
+    break;
+  case 'help':
+  case '--help':
+  case '-h':
+    usage();
+    break;
+  default:
+    if (command) {
+      console.error(`Unknown command: ${command}`);
+    }
+    usage();
+    if (command && command !== 'help' && command !== '--help' && command !== '-h') {
+      process.exit(1);
+    }
+    break;
   }
 }
 
