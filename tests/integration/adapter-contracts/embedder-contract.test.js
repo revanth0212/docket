@@ -8,8 +8,19 @@ const { AdapterRegistry } = require('../../../src/core/utils/adapter-registry');
 describe('EmbedderAdapter Contract', () => {
   let embedder;
   let registry;
+  let fetchMock;
 
   beforeAll(async () => {
+    fetchMock = jest.fn();
+    global.fetch = fetchMock;
+
+    // Mock a healthy Ollama-compatible /models endpoint so the default
+    // adapter initializes without a running service.
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ models: [] })
+    });
+
     const config = loadConfig();
     registry = new AdapterRegistry();
 
@@ -17,6 +28,10 @@ describe('EmbedderAdapter Contract', () => {
     const providerConfig = config.docket.adapters.embedder.providers[testAdapter];
 
     embedder = await registry.loadAdapter('embedder', testAdapter, providerConfig);
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   describe('metadata', () => {
@@ -38,7 +53,16 @@ describe('EmbedderAdapter Contract', () => {
   });
 
   describe('embed', () => {
+    beforeEach(() => {
+      fetchMock.mockReset();
+    });
+
     it('embeds a single text', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ embedding: [0.1, 0.2, 0.3] })
+      });
+
       const vector = await embedder.embed('The quick brown fox');
       expect(Array.isArray(vector)).toBe(true);
       expect(vector.length).toBeGreaterThan(0);
@@ -46,6 +70,16 @@ describe('EmbedderAdapter Contract', () => {
     });
 
     it('embeds multiple texts in batch', async () => {
+      fetchMock
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ embedding: [0.1] })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ embedding: [0.2] })
+        });
+
       const vectors = await embedder.embedBatch([
         'First sentence',
         'Second sentence'
@@ -59,6 +93,11 @@ describe('EmbedderAdapter Contract', () => {
     });
 
     it('reports dimensions', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ embedding: [0.1, 0.2, 0.3] })
+      });
+
       const dims = await embedder.getDimensions();
       expect(typeof dims).toBe('number');
       expect(dims).toBeGreaterThan(0);

@@ -20,6 +20,7 @@ class SQSQueueAdapter extends QueueAdapter {
     this.running = false;
     this.workers = new Map();
     this.activeWorkers = 0;
+    this.inFlight = new Map();
   }
 
   async initialize() {
@@ -91,6 +92,8 @@ class SQSQueueAdapter extends QueueAdapter {
     job.startedAt = new Date();
     job.receiptHandle = message.ReceiptHandle;
 
+    this.inFlight.set(job.id, job);
+
     return job;
   }
 
@@ -104,6 +107,7 @@ class SQSQueueAdapter extends QueueAdapter {
       }));
     }
 
+    this.inFlight.delete(jobId);
     this.activeWorkers -= 1;
     this.processNext();
 
@@ -120,6 +124,7 @@ class SQSQueueAdapter extends QueueAdapter {
 
     if (shouldRetry && receiptHandle) {
       // Let SQS handle retry via visibility timeout or dead letter queue
+      this.inFlight.delete(jobId);
       this.activeWorkers -= 1;
       this.processNext();
       return {
@@ -136,6 +141,7 @@ class SQSQueueAdapter extends QueueAdapter {
       }));
     }
 
+    this.inFlight.delete(jobId);
     this.activeWorkers -= 1;
     this.processNext();
 
@@ -192,9 +198,8 @@ class SQSQueueAdapter extends QueueAdapter {
     }
   }
 
-  _getReceiptHandle(_jobId) {
-    // In a real implementation, we'd track receipt handles in memory or DynamoDB
-    return null;
+  _getReceiptHandle(jobId) {
+    return this.inFlight.get(jobId)?.receiptHandle || null;
   }
 
   async health() {

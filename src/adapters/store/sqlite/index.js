@@ -190,20 +190,20 @@ class SQLiteStoreAdapter extends StoreAdapter {
 
     if (filters.contentType) {
       conditions.push('content_type = $contentType');
-      params.$contentType = filters.contentType;
+      params.contentType = filters.contentType;
     }
     if (filters.dateFrom) {
       conditions.push('created_at >= $dateFrom');
-      params.$dateFrom = filters.dateFrom.toISOString();
+      params.dateFrom = filters.dateFrom.toISOString();
     }
     if (filters.dateTo) {
       conditions.push('created_at <= $dateTo');
-      params.$dateTo = filters.dateTo.toISOString();
+      params.dateTo = filters.dateTo.toISOString();
     }
     if (filters.metadata) {
       for (const [key, value] of Object.entries(filters.metadata)) {
         conditions.push(`json_extract(metadata, '$.${key}') = $meta_${key}`);
-        params[`$meta_${key}`] = value;
+        params[`meta_${key}`] = value;
       }
     }
 
@@ -366,7 +366,7 @@ class SQLiteStoreAdapter extends StoreAdapter {
 
     while (queue.length > 0) {
       const { id, d } = queue.shift();
-      if (visited.has(id) || d > depth) continue;
+      if (visited.has(id) || d >= depth) continue;
       visited.add(id);
 
       const rows = this.db.prepare(`

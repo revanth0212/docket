@@ -277,16 +277,18 @@ class DynamoDBStoreAdapter extends StoreAdapter {
   }
 
   async getMemoryGraph(memoryId, options = {}) {
-    const typeFilter = options.type;
+    const typeFilter = options.type ? 'AND type = :type' : '';
     const limit = options.limit || 50;
 
     // Scan for relations involving this memory
     const scanResult = await this.docClient.send(new ScanCommand({
       TableName: this.tableName,
-      FilterExpression: 'begins_with(pk, :pkPrefix) AND (sourceId = :id OR targetId = :id)',
+      FilterExpression:
+        `begins_with(pk, :pkPrefix) AND (sourceId = :id OR targetId = :id) ${typeFilter}`,
       ExpressionAttributeValues: {
         ':pkPrefix': 'REL#',
-        ':id': memoryId
+        ':id': memoryId,
+        ...(options.type ? { ':type': options.type } : {})
       },
       Limit: limit
     }));

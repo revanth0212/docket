@@ -8,8 +8,19 @@ const { AdapterRegistry } = require('../../../src/core/utils/adapter-registry');
 describe('LlmAdapter Contract', () => {
   let llm;
   let registry;
+  let fetchMock;
 
   beforeAll(async () => {
+    fetchMock = jest.fn();
+    global.fetch = fetchMock;
+
+    // Mock a healthy OpenAI-compatible /models endpoint so the default
+    // adapter initializes without a running service.
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] })
+    });
+
     const config = loadConfig();
     registry = new AdapterRegistry();
 
@@ -17,6 +28,10 @@ describe('LlmAdapter Contract', () => {
     const providerConfig = config.docket.adapters.llm.providers[testAdapter];
 
     llm = await registry.loadAdapter('llm', testAdapter, providerConfig);
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   describe('metadata', () => {
@@ -38,7 +53,23 @@ describe('LlmAdapter Contract', () => {
   });
 
   describe('chat', () => {
+    beforeEach(() => {
+      fetchMock.mockReset();
+    });
+
     it('responds to a simple message', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          model: 'local-model',
+          choices: [{
+            message: { content: ' Hello there ' },
+            finish_reason: 'stop'
+          }],
+          usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 }
+        })
+      });
+
       const response = await llm.chat([
         { role: 'user', content: 'Say "hello" and nothing else.' }
       ], { maxTokens: 20 });
@@ -51,6 +82,18 @@ describe('LlmAdapter Contract', () => {
     });
 
     it('handles system prompts', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          model: 'local-model',
+          choices: [{
+            message: { content: 'Hi there' },
+            finish_reason: 'stop'
+          }],
+          usage: {}
+        })
+      });
+
       const response = await llm.chat([
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: 'Hi' }
