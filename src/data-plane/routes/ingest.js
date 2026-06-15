@@ -34,7 +34,9 @@ async function registerIngestRoute(app, options = {}) {
         filename: request.body.filename,
         async: request.body.async,
         metadata: request.body.metadata,
-        sectorHint: request.body.sectorHint
+        sectorHint: request.body.sectorHint,
+        validFrom: request.body.validFrom,
+        validTo: request.body.validTo
       });
     }
 

@@ -193,10 +193,9 @@ class MemoryService {
   _enrichNewMemory(data) {
     if (this.mode !== 'rich') return data;
 
-    const now = new Date();
     const defaultFrom = this.temporal.defaultValidFrom
       ? new Date(this.temporal.defaultValidFrom)
-      : now;
+      : null;
     const defaultTo = this.temporal.defaultValidTo
       ? new Date(this.temporal.defaultValidTo)
       : null;

@@ -142,6 +142,8 @@ class IngestionService {
       if (summary) memoryData.summary = summary;
       if (embedding) memoryData.embedding = embedding;
       if (sector) memoryData.sector = sector;
+      if (input.validFrom) memoryData.validFrom = new Date(input.validFrom);
+      if (input.validTo) memoryData.validTo = new Date(input.validTo);
 
       const memory = await this.memoryService.create(memoryData);
 

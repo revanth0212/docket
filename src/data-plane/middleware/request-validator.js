@@ -10,7 +10,9 @@ const IngestRequestSchema = z.object({
   filename: z.string().optional(),
   async: z.boolean().default(false),
   metadata: z.record(z.any()).default({}),
-  sectorHint: z.enum(['episodic', 'semantic', 'procedural', 'emotional', 'reflective']).optional()
+  sectorHint: z.enum(['episodic', 'semantic', 'procedural', 'emotional', 'reflective']).optional(),
+  validFrom: z.string().datetime().optional(),
+  validTo: z.string().datetime().optional()
 }).refine(data => data.text, {
   message: 'text is required for JSON ingest requests',
   path: ['text']

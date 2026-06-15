@@ -1,0 +1,1 @@
+I learned that Rust uses ownership instead of garbage collection. The borrow checker ensures memory safety at compile time.

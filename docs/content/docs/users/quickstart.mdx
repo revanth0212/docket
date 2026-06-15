@@ -10,7 +10,7 @@ Run your own second brain locally with zero setup beyond Ollama.
 ## Prerequisites
 
 - Node.js 20+
-- Ollama installed locally
+- Ollama installed locally (or any OpenAI-compatible endpoint)
 
 ## 1. Install Docket
 
@@ -39,7 +39,7 @@ The server starts on `http://localhost:3000`.
 
 ```bash
 curl -X POST http://localhost:3000/ingest \
-  -F "file=@photo.jpg" \
+  -F "file=@tests/fixtures/bicycle.txt" \
   -F "async=false"
 ```
 
@@ -47,9 +47,8 @@ Response:
 ```json
 {
   "id": "mem_abc123",
-  "rawRef": "blobs/mem_abc123/raw.jpg",
-  "contentType": "image/jpeg",
-  "sector": "episodic",
+  "status": "completed",
+  "sector": "semantic",
   "createdAt": "2026-05-09T12:00:00Z"
 }
 ```
@@ -59,26 +58,28 @@ Response:
 ```bash
 curl -X POST http://localhost:3000/query \
   -H "Content-Type: application/json" \
-  -d '{"question": "What did I photograph last week?"}'
+  -d '{"question": "What did I capture about bicycles?"}'
 ```
 
 Response:
 ```json
 {
-  "answer": "You photographed a bicycle on a trail.",
+  "answer": "You captured a note about a bicycle.",
   "sources": [
-    { "id": "mem_abc123", "score": 0.94 }
-  ],
-  "trace": [
-    "vector search returned 50 candidates",
-    "graph traversal pruned to 12",
-    "recency boost applied"
+    { "memoryId": "mem_abc123", "score": 0.94 }
   ]
 }
+```
+
+## Run the verification script
+
+```bash
+./scripts/verify-hello-world.sh
 ```
 
 ## Next steps
 
 - [Configure adapters](/docs/users/configuration)
 - [Learn about memory modes](/docs/users/memory-modes)
+- [Enable RBAC](/docs/users/rbac)
 - [Set up hosting](/docs/users/hosting)

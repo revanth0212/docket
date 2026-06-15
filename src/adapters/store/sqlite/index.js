@@ -63,7 +63,8 @@ class SQLiteStoreAdapter extends StoreAdapter {
   _getMigrationScripts() {
     return [
       ['0.1.0', this._schemaV010()],
-      ['0.2.0', this._schemaV020()]
+      ['0.2.0', this._schemaV020()],
+      ['0.2.1', this._schemaV021()]
     ];
   }
 
@@ -71,12 +72,15 @@ class SQLiteStoreAdapter extends StoreAdapter {
     return `
       CREATE TABLE IF NOT EXISTS memories (
         id TEXT PRIMARY KEY,
-        raw_ref TEXT NOT NULL,
+        raw_ref TEXT,
         content_type TEXT NOT NULL,
         extracted_text TEXT,
         summary TEXT,
         metadata TEXT,
         parent_id TEXT,
+        owner TEXT,
+        readers TEXT,
+        writers TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
@@ -118,6 +122,47 @@ class SQLiteStoreAdapter extends StoreAdapter {
     `;
   }
 
+  _schemaV021() {
+    // Make raw_ref nullable to support text-only memories.
+    // SQLite does not support ALTER COLUMN, so we recreate the table.
+    return `
+      CREATE TABLE IF NOT EXISTS memories_new (
+        id TEXT PRIMARY KEY,
+        raw_ref TEXT,
+        content_type TEXT NOT NULL,
+        extracted_text TEXT,
+        summary TEXT,
+        metadata TEXT,
+        parent_id TEXT,
+        sector TEXT,
+        salience REAL DEFAULT 1.0,
+        valid_from DATETIME,
+        valid_to DATETIME,
+        access_policy TEXT DEFAULT 'owner-only',
+        owner TEXT,
+        readers TEXT,
+        writers TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      INSERT INTO memories_new SELECT
+        id, raw_ref, content_type, extracted_text, summary, metadata,
+        parent_id, sector, salience, valid_from, valid_to, access_policy,
+        NULL, NULL, NULL,
+        created_at, updated_at
+      FROM memories;
+
+      DROP TABLE memories;
+      ALTER TABLE memories_new RENAME TO memories;
+
+      CREATE INDEX IF NOT EXISTS idx_memories_parent ON memories(parent_id);
+      CREATE INDEX IF NOT EXISTS idx_memories_created ON memories(created_at);
+      CREATE INDEX IF NOT EXISTS idx_memories_sector ON memories(sector);
+      CREATE INDEX IF NOT EXISTS idx_memories_salience ON memories(salience);
+    `;
+  }
+
   _getCurrentVersion() {
     const row = this.db
       .prepare('SELECT version FROM _migrations ORDER BY version DESC LIMIT 1')
@@ -148,9 +193,12 @@ class SQLiteStoreAdapter extends StoreAdapter {
       parent_id: memory.parentId || null,
       sector: memory.sector || null,
       salience: memory.salience ?? 1.0,
-      valid_from: memory.validFrom || null,
-      valid_to: memory.validTo || null,
+      valid_from: memory.validFrom ? new Date(memory.validFrom).toISOString() : null,
+      valid_to: memory.validTo ? new Date(memory.validTo).toISOString() : null,
       access_policy: memory.accessPolicy || 'owner-only',
+      owner: memory.owner || null,
+      readers: memory.readers ? JSON.stringify(memory.readers) : null,
+      writers: memory.writers ? JSON.stringify(memory.writers) : null,
       created_at: memory.createdAt?.toISOString() || now,
       updated_at: now
     };
@@ -159,10 +207,12 @@ class SQLiteStoreAdapter extends StoreAdapter {
       INSERT INTO memories (
         id, raw_ref, content_type, extracted_text, summary, metadata,
         parent_id, sector, salience, valid_from, valid_to, access_policy,
+        owner, readers, writers,
         created_at, updated_at
       ) VALUES (
         $id, $raw_ref, $content_type, $extracted_text, $summary, $metadata,
         $parent_id, $sector, $salience, $valid_from, $valid_to, $access_policy,
+        $owner, $readers, $writers,
         $created_at, $updated_at
       )
     `).run(row);
@@ -172,7 +222,7 @@ class SQLiteStoreAdapter extends StoreAdapter {
       this.db.prepare(`
         INSERT INTO vec_memories (memory_id, embedding)
         VALUES (?, ?)
-      `).run(id, embeddingBuffer);
+      `).run(id, Buffer.from(embeddingBuffer.buffer));
     }
 
     return this.getMemory(id);
@@ -242,7 +292,7 @@ class SQLiteStoreAdapter extends StoreAdapter {
       throw new Error('Embedding must be an array of numbers');
     }
 
-    const queryBuffer = new Float32Array(embedding);
+    const queryBuffer = Buffer.from(new Float32Array(embedding).buffer);
 
     const sql = `
       SELECT
@@ -290,14 +340,17 @@ class SQLiteStoreAdapter extends StoreAdapter {
       salience: 'salience',
       validFrom: 'valid_from',
       validTo: 'valid_to',
-      accessPolicy: 'access_policy'
+      accessPolicy: 'access_policy',
+      owner: 'owner',
+      readers: 'readers',
+      writers: 'writers'
     };
 
     for (const [jsKey, sqlKey] of Object.entries(fieldMap)) {
       if (patch[jsKey] !== undefined) {
         sets.push(`${sqlKey} = ?`);
         values.push(
-          jsKey === 'metadata' && patch[jsKey] != null
+          ['metadata', 'readers', 'writers'].includes(jsKey) && patch[jsKey] != null
             ? JSON.stringify(patch[jsKey])
             : patch[jsKey]
         );
@@ -420,6 +473,9 @@ class SQLiteStoreAdapter extends StoreAdapter {
       validFrom: row.valid_from ? new Date(row.valid_from) : undefined,
       validTo: row.valid_to ? new Date(row.valid_to) : undefined,
       accessPolicy: row.access_policy,
+      owner: row.owner,
+      readers: row.readers ? JSON.parse(row.readers) : undefined,
+      writers: row.writers ? JSON.parse(row.writers) : undefined,
       createdAt: new Date(row.created_at),
       updatedAt: row.updated_at ? new Date(row.updated_at) : undefined
     };
