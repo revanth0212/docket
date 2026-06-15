@@ -1,6 +1,6 @@
 {
   "name": "docket",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Open-source Second Brain Core — ingest, embed, query",
   "main": "src/platform/unified/index.js",
   "bin": {

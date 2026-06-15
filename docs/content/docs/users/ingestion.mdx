@@ -12,43 +12,12 @@ pipeline: validate, extract, classify (rich mode), embed, store.
 
 ```bash
 curl -X POST http://localhost:3000/ingest \
-  -F "file=@document.pdf" \
-  -F "async=false" \
-  -H "X-Principal: user:alice"
+  -F "file=@tests/fixtures/bicycle.txt" \
+  -F "async=false"
 ```
 
-## Parameters
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `file` | File | Yes* | The file to ingest (multipart only) |
-| `text` | string | Yes* | Raw text to ingest (JSON only) |
-| `contentType` | string | Yes | MIME type of the content |
-| `async` | boolean | No | `true` queues the job, `false` waits for completion |
-| `metadata` | JSON | No | Arbitrary key-value metadata |
-| `sectorHint` | string | No | Force sector: `episodic`, `semantic`, `procedural`, `emotional`, `reflective` |
-
-*Either `file` (multipart) or `text` (JSON) is required.
-
-## JSON ingestion
-
-```bash
-curl -X POST http://localhost:3000/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Rust uses ownership instead of GC", "contentType": "text/plain"}'
-```
-
-## Multipart file upload
-
-- Images: `image/jpeg`, `image/png`, `image/webp`
-- Text: `text/plain`, `text/markdown`
-- Documents: `application/pdf`
-- Audio: `audio/mpeg`, `audio/wav` (requires Whisper adapter)
-- Video: `video/mp4` (extracts audio via Whisper)
-
-## Async ingestion
-
-For large files or batch uploads, use async mode:
+The file's MIME type is used as `contentType`. For large files or batch uploads,
+use async mode:
 
 ```bash
 curl -X POST http://localhost:3000/ingest \
@@ -64,10 +33,43 @@ Response:
 }
 ```
 
-Check status:
+Async jobs are enqueued via the configured `QueueAdapter`. In v0.2.0 the
+in-memory queue stores jobs; workers for processing are not yet wired.
+
+## Upload raw text
+
 ```bash
-curl http://localhost:3000/jobs/job_xyz789
+curl -X POST http://localhost:3000/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Rust uses ownership instead of GC", "contentType": "text/plain"}'
 ```
+
+## Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | File | Yes* | The file to ingest (multipart only) |
+| `text` | string | Yes* | Raw text to ingest (JSON only) |
+| `contentType` | string | Yes* | MIME type of the content. Inferred from the uploaded file for multipart |
+| `async` | boolean | No | `true` queues the job, `false` waits for completion |
+| `metadata` | JSON | No | Arbitrary key-value metadata |
+| `sectorHint` | string | No | Force sector: `episodic`, `semantic`, `procedural`, `emotional`, `reflective` |
+| `validFrom` | datetime | No | ISO 8601 start of validity window (rich mode) |
+| `validTo` | datetime | No | ISO 8601 end of validity window (rich mode) |
+
+*Either `file` (multipart) or `text` (JSON) is required.
+
+## Supported content types
+
+Currently implemented:
+
+- `text/plain`, `text/markdown`, `text/html`, and other `text/*` types
+
+Deferred to later phases:
+
+- Images (OCR)
+- PDF documents
+- Audio/video (Whisper transcription)
 
 ## What happens during ingestion
 

@@ -44,10 +44,13 @@ docket:
 | `decay.forgottenThreshold` | number | 0.05 | Min salience for search |
 | `temporal.enabled` | boolean | true | Validity windows |
 | `temporal.pointInTimeQueries` | boolean | true | Allow atDate queries |
-| `rbac.enabled` | boolean | true | Access control |
+| `rbac.enabled` | boolean | false | Access control |
 | `rbac.authStrategy` | string | "header" | header, jwt, apiKey |
 | `rbac.principalHeader` | string | "X-Principal" | Header name |
 | `rbac.defaultPolicy` | string | "owner-only" | Default access |
+| `rbac.apiKeys` | object | {} | API key → principal map (apiKey strategy) |
+| `rbac.policies` | object | `public`, `team` | Named policy definitions. `defaults.yaml` ships with `public` and `team` examples |
+| `rbac.jwtSecret` | string | "" | Secret for JWT strategy |
 
 ## AdapterProviderConfig
 

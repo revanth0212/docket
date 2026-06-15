@@ -61,7 +61,7 @@ docket:
       pointInTimeQueries: true
 
     rbac:
-      enabled: true
+      enabled: false
       # How principals are extracted from requests
       # header = read X-Principal header
       # jwt = verify JWT token, extract sub
