@@ -81,6 +81,17 @@ async function registerControlPlaneRoutes(app, options = {}) {
     return { status: 'saved' };
   });
 
+  // Decay trigger
+  app.post('/admin/decay', async () => {
+    const decayEngine = options.services?.decayEngine;
+    if (!decayEngine) {
+      return { status: 'disabled', reason: 'no_decay_engine' };
+    }
+
+    const result = await decayEngine.runDecayCycle();
+    return { status: 'completed', ...result };
+  });
+
   // Metrics (Prometheus-compatible)
   app.get('/admin/metrics', async (_, reply) => {
     // TODO: emit real metrics

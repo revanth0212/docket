@@ -4,9 +4,25 @@ const request = require('supertest');
 const { buildUnifiedApp, startUnifiedApp } = require('../../../../src/platform/unified/app');
 
 describe('Unified Platform', () => {
+  function createServices() {
+    return {
+      ingestion: { ingest: jest.fn().mockResolvedValue({ id: 'mem_abc', status: 'completed' }) },
+      query: { query: jest.fn().mockResolvedValue({ answer: '', sources: [] }) },
+      memory: {
+        getById: jest.fn().mockResolvedValue({ id: 'mem_abc' }),
+        create: jest.fn().mockResolvedValue({ id: 'mem_abc' }),
+        update: jest.fn().mockResolvedValue({ id: 'mem_abc' }),
+        delete: jest.fn().mockResolvedValue(true),
+        getRelations: jest.fn().mockResolvedValue([]),
+        createRelation: jest.fn().mockResolvedValue({ id: 1 })
+      },
+      decayEngine: { runDecayCycle: jest.fn().mockResolvedValue({ totalUpdated: 0, forgotten: 0 }) }
+    };
+  }
+
   describe('buildUnifiedApp', () => {
     it('returns a Fastify instance', async () => {
-      const app = buildUnifiedApp({ logger: false });
+      const app = buildUnifiedApp({ logger: false, services: createServices() });
       await app.ready();
       expect(app).toBeDefined();
       expect(typeof app.get).toBe('function');
@@ -14,7 +30,7 @@ describe('Unified Platform', () => {
     });
 
     it('mounts data plane routes', async () => {
-      const app = buildUnifiedApp({ logger: false });
+      const app = buildUnifiedApp({ logger: false, services: createServices() });
       await app.ready();
 
       const res = await request(app.server).get('/health').expect(200);
@@ -24,7 +40,7 @@ describe('Unified Platform', () => {
     });
 
     it('mounts control plane routes', async () => {
-      const app = buildUnifiedApp({ logger: false });
+      const app = buildUnifiedApp({ logger: false, services: createServices() });
       await app.ready();
 
       const res = await request(app.server).get('/admin/health').expect(200);
@@ -40,7 +56,8 @@ describe('Unified Platform', () => {
           store: {
             health: async () => ({ ok: true })
           }
-        }
+        },
+        services: createServices()
       });
       await app.ready();
 
@@ -61,7 +78,8 @@ describe('Unified Platform', () => {
             memory: { mode: 'rich' },
             adapters: { store: 'sqlite' }
           }
-        }
+        },
+        services: createServices()
       });
       await app.ready();
 
@@ -77,7 +95,7 @@ describe('Unified Platform', () => {
 
   describe('startUnifiedApp', () => {
     it('starts server on default port', async () => {
-      const app = await startUnifiedApp({ logger: false, port: 0 });
+      const app = await startUnifiedApp({ logger: false, port: 0, services: createServices() });
       expect(app).toBeDefined();
       await app.close();
     });

@@ -10,11 +10,19 @@ describe('MemorySchema', () => {
       contentType: 'text/plain',
       summary: 'test',
       metadata: { source: 'test' },
-      parentId: 'mem_parent'
+      parentId: 'mem_parent',
+      sector: 'semantic',
+      salience: 0.9,
+      validFrom: new Date('2024-01-01'),
+      validTo: new Date('2025-01-01'),
+      accessPolicy: 'public'
     };
     const result = MemorySchema.safeParse(memory);
     expect(result.success).toBe(true);
     expect(result.data.id).toBe('mem_abc123');
+    expect(result.data.sector).toBe('semantic');
+    expect(result.data.salience).toBe(0.9);
+    expect(result.data.accessPolicy).toBe('public');
     expect(result.data.createdAt).toBeInstanceOf(Date);
   });
 
@@ -33,10 +41,32 @@ describe('MemorySchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('applies default metadata and createdAt', () => {
+  it('rejects invalid sector', () => {
+    const result = MemorySchema.safeParse({
+      id: 'mem_abc123',
+      rawRef: 'blob:1',
+      contentType: 'text/plain',
+      sector: 'invalid'
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects salience outside 0-1', () => {
+    const result = MemorySchema.safeParse({
+      id: 'mem_abc123',
+      rawRef: 'blob:1',
+      contentType: 'text/plain',
+      salience: 1.5
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('applies default metadata, salience, accessPolicy and createdAt', () => {
     const result = MemorySchema.safeParse({ id: 'mem_abc123', rawRef: 'blob:1', contentType: 'text/plain' });
     expect(result.success).toBe(true);
     expect(result.data.metadata).toEqual({});
+    expect(result.data.salience).toBe(1.0);
+    expect(result.data.accessPolicy).toBe('owner-only');
     expect(result.data.createdAt).toBeInstanceOf(Date);
   });
 });
@@ -45,6 +75,17 @@ describe('CreateMemorySchema', () => {
   it('validates minimal create input', () => {
     const result = CreateMemorySchema.safeParse({ rawRef: 'blob:1', contentType: 'text/plain' });
     expect(result.success).toBe(true);
+  });
+
+  it('validates rich mode fields', () => {
+    const result = CreateMemorySchema.safeParse({
+      rawRef: 'blob:1',
+      contentType: 'text/plain',
+      sector: 'episodic',
+      salience: 0.8
+    });
+    expect(result.success).toBe(true);
+    expect(result.data.sector).toBe('episodic');
   });
 
   it('strips id in create input', () => {
@@ -58,6 +99,16 @@ describe('UpdateMemorySchema', () => {
   it('validates partial update', () => {
     const result = UpdateMemorySchema.safeParse({ summary: 'updated' });
     expect(result.success).toBe(true);
+  });
+
+  it('validates rich mode update fields', () => {
+    const result = UpdateMemorySchema.safeParse({
+      sector: 'reflective',
+      salience: 0.5,
+      validTo: new Date('2025-01-01')
+    });
+    expect(result.success).toBe(true);
+    expect(result.data.sector).toBe('reflective');
   });
 
   it('strips id in update input', () => {

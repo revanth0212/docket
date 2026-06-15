@@ -4,10 +4,33 @@ const request = require('supertest');
 const { buildDataPlane } = require('../../../src/data-plane/app');
 
 describe('Data Plane Routes', () => {
+  function createServices(overrides = {}) {
+    return {
+      ingestion: {
+        ingest: jest.fn().mockResolvedValue({ id: 'mem_abc', status: 'completed' })
+      },
+      query: {
+        query: jest.fn().mockResolvedValue({
+          answer: 'test answer',
+          sources: [{ memoryId: 'mem_abc', summary: 'test', score: 0.9 }]
+        })
+      },
+      memory: {
+        getById: jest.fn().mockResolvedValue({ id: 'mem_abc123', summary: 'test' }),
+        create: jest.fn().mockResolvedValue({ id: 'mem_abc123', status: 'created' }),
+        update: jest.fn().mockResolvedValue({ id: 'mem_abc123', summary: 'updated' }),
+        delete: jest.fn().mockResolvedValue(true),
+        getRelations: jest.fn().mockResolvedValue([{ source: 'a', target: 'b' }]),
+        createRelation: jest.fn().mockResolvedValue({ id: 1, sourceId: 'mem_abc123', targetId: 'mem_def' })
+      },
+      ...overrides
+    };
+  }
+
   let app;
 
   beforeEach(async () => {
-    app = buildDataPlane({ logger: false });
+    app = buildDataPlane({ logger: false, services: createServices() });
     await app.ready();
   });
 
@@ -30,11 +53,11 @@ describe('Data Plane Routes', () => {
     it('accepts ingest requests', async () => {
       const response = await request(app.server)
         .post('/ingest')
-        .send({ text: 'hello world', async: false })
-        .expect(200)
+        .send({ text: 'hello world', contentType: 'text/plain', async: false })
+        .expect(201)
         .expect('Content-Type', /json/);
 
-      expect(response.body).toHaveProperty('status', 'pending');
+      expect(response.body).toHaveProperty('status', 'completed');
       expect(response.body).toHaveProperty('id');
     });
   });
@@ -49,12 +72,11 @@ describe('Data Plane Routes', () => {
 
       expect(response.body).toHaveProperty('answer');
       expect(response.body).toHaveProperty('sources');
-      expect(response.body).toHaveProperty('trace');
     });
   });
 
   describe('GET /memories/:id', () => {
-    it('returns memory stub', async () => {
+    it('returns memory from service', async () => {
       const response = await request(app.server)
         .get('/memories/mem_abc123')
         .expect(200)
@@ -68,11 +90,11 @@ describe('Data Plane Routes', () => {
     it('accepts create requests', async () => {
       const response = await request(app.server)
         .post('/memories')
-        .send({ rawRef: 'test.jpg', contentType: 'image/jpeg' })
+        .send({ contentType: 'image/jpeg', extractedText: 'A photo' })
         .expect(200)
         .expect('Content-Type', /json/);
 
-      expect(response.body).toHaveProperty('status', 'pending');
+      expect(response.body).toHaveProperty('id');
     });
   });
 

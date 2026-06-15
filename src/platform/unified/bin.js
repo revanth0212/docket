@@ -4,6 +4,7 @@
 
 const { loadConfig } = require('../../core/config/loader');
 const { AdapterRegistry } = require('../../core/utils/adapter-registry');
+const { createCoreServices } = require('../../core/modules/service-factory');
 const { startUnifiedApp } = require('./app');
 
 async function main() {
@@ -26,14 +27,17 @@ async function main() {
     process.exit(1);
   }
 
+  const services = createCoreServices(adapters, config);
+
   const port = process.env.DOCKET_PORT
     ? Number(process.env.DOCKET_PORT)
     : (config.docket.server?.port ?? 3000);
   const host = process.env.DOCKET_HOST || (config.docket.server?.host ?? '0.0.0.0');
 
   try {
-    const app = await startUnifiedApp({ port, host, adapters, registry, config });
+    const app = await startUnifiedApp({ port, host, adapters, registry, config, services });
     app.log.info('Adapter registry initialized: %o', Object.keys(adapters));
+    app.log.info('Core services initialized: %o', Object.keys(services));
   } catch (err) {
     console.error('Failed to start Docket unified server:', err.message);
     process.exit(1);

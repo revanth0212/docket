@@ -4,10 +4,32 @@ const request = require('supertest');
 const { buildUnifiedApp } = require('../../../src/platform/unified/app');
 
 describe('Unified Platform', () => {
+  function createServices() {
+    return {
+      ingestion: {
+        ingest: jest.fn().mockResolvedValue({ id: 'mem_abc', status: 'completed' })
+      },
+      query: {
+        query: jest.fn().mockResolvedValue({ answer: '', sources: [] })
+      },
+      memory: {
+        getById: jest.fn().mockResolvedValue({ id: 'mem_abc', summary: 'test' }),
+        create: jest.fn().mockResolvedValue({ id: 'mem_abc' }),
+        update: jest.fn().mockResolvedValue({ id: 'mem_abc' }),
+        delete: jest.fn().mockResolvedValue(true),
+        getRelations: jest.fn().mockResolvedValue([]),
+        createRelation: jest.fn().mockResolvedValue({ id: 1 })
+      },
+      decayEngine: {
+        runDecayCycle: jest.fn().mockResolvedValue({ totalUpdated: 0, forgotten: 0 })
+      }
+    };
+  }
+
   let app;
 
   beforeEach(async () => {
-    app = buildUnifiedApp({ logger: false });
+    app = buildUnifiedApp({ logger: false, services: createServices() });
     await app.ready();
   });
 
@@ -43,10 +65,10 @@ describe('Unified Platform', () => {
   it('handles data plane ingest at root', async () => {
     const response = await request(app.server)
       .post('/ingest')
-      .send({ text: 'test' })
-      .expect(200);
+      .send({ text: 'test', contentType: 'text/plain' })
+      .expect(201);
 
-    expect(response.body).toHaveProperty('status', 'pending');
+    expect(response.body).toHaveProperty('status', 'completed');
   });
 
   it('handles control plane plugin list under /admin', async () => {

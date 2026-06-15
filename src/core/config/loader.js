@@ -6,6 +6,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 const { z } = require('zod');
 const { ConfigError } = require('../errors');
+const { configSchema } = require('./schema');
 
 /**
  * Interpolate environment variables in config strings
@@ -48,52 +49,8 @@ function deepInterpolate(obj) {
 }
 
 /**
- * Zod schema for config validation
- */
-const adapterProviderSchema = z.object({
-  adapter: z.string().min(1),
-  config: z.record(z.any()).default({})
-});
-
-const configSchema = z.object({
-  docket: z.object({
-    version: z.string().optional(),
-    server: z.object({
-      port: z.number().int().min(1).max(65535).default(3000),
-      host: z.string().default('127.0.0.1')
-    }).default({}),
-    logging: z.object({
-      level: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
-      format: z.enum(['pretty', 'json']).default('pretty')
-    }).default({}),
-    adapters: z.object({
-      llm: z.object({
-        default: z.string(),
-        providers: z.record(adapterProviderSchema)
-      }),
-      embedder: z.object({
-        default: z.string(),
-        providers: z.record(adapterProviderSchema)
-      }),
-      store: z.object({
-        default: z.string(),
-        providers: z.record(adapterProviderSchema)
-      }),
-      blob: z.object({
-        default: z.string(),
-        providers: z.record(adapterProviderSchema)
-      }),
-      queue: z.object({
-        default: z.string(),
-        providers: z.record(adapterProviderSchema)
-      })
-    })
-  })
-});
-
-/**
  * Load configuration from file and environment
- * 
+ *
  * Priority (low to high):
  * 1. defaults.yaml (built-in)
  * 2. config.yaml (user-provided, gitignored)

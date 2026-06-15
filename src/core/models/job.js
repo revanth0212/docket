@@ -5,11 +5,19 @@ const { z } = require('zod');
 
 const JobSchema = z.object({
   id: z.string().regex(/^job_[a-z0-9]+$/),
-  type: z.enum(['ingestion', 'insight-generation', 'summarization', 'extraction']),
+  type: z.enum([
+    'ingestion',
+    'insight-generation',
+    'summarization',
+    'extraction',
+    'decay'
+  ]),
   payload: z.record(z.any()),
   status: z.enum(['pending', 'processing', 'completed', 'failed']).default('pending'),
   attempts: z.number().int().min(0).default(0),
   maxAttempts: z.number().int().min(1).default(3),
+  priority: z.number().int().default(0),
+  delay: z.number().int().min(0).default(0),
   error: z.string().optional(),
   result: z.record(z.any()).optional(),
   createdAt: z.date().default(() => new Date()),
