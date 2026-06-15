@@ -11,14 +11,16 @@ const { IngestionError } = require('../../core/errors');
  */
 async function registerIngestRoute(app, options = {}) {
   const ingestionService = options.ingestionService;
+  const getIngestionService = options.getIngestionService || (() => ingestionService);
 
   app.post('/ingest', { preHandler: validate(IngestRequestSchema) }, async (request, reply) => {
+    const service = getIngestionService(request);
     let result;
 
     if (request.isMultipart()) {
-      result = await handleMultipart(request, ingestionService);
+      result = await handleMultipart(request, service);
     } else {
-      result = await ingestionService.ingest({
+      result = await service.ingest({
         text: request.body.text,
         contentType: request.body.contentType,
         filename: request.body.filename,
@@ -33,7 +35,7 @@ async function registerIngestRoute(app, options = {}) {
   });
 }
 
-async function handleMultipart(request, ingestionService) {
+async function handleMultipart(request, service) {
   const parts = request.parts();
   let fileBuffer = null;
   let filename = null;
@@ -75,7 +77,7 @@ async function handleMultipart(request, ingestionService) {
     throw new IngestionError('Multipart ingest requires a file');
   }
 
-  return ingestionService.ingest({
+  return service.ingest({
     buffer: fileBuffer,
     contentType,
     filename,

@@ -18,6 +18,9 @@ const MemorySchema = z.object({
   validFrom: z.date().optional(),
   validTo: z.date().optional(),
   accessPolicy: z.string().default('owner-only'),
+  owner: z.string().optional(),
+  readers: z.array(z.string()).default([]),
+  writers: z.array(z.string()).default([]),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().optional()
 });

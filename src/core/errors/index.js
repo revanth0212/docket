@@ -68,6 +68,18 @@ class NotFoundError extends DocketError {
 }
 
 /**
+ * Forbidden error — authenticated but not authorized
+ */
+class ForbiddenError extends DocketError {
+  constructor(message, options = {}) {
+    super(message, { ...options, code: 'FORBIDDEN', statusCode: 403 });
+    this.name = 'ForbiddenError';
+    this.resource = options.resource || 'resource';
+    this.resourceId = options.resourceId;
+  }
+}
+
+/**
  * Ingestion error — pipeline failure
  */
 class IngestionError extends DocketError {
@@ -128,6 +140,7 @@ module.exports = {
   ValidationError,
   AdapterError,
   NotFoundError,
+  ForbiddenError,
   IngestionError,
   QueryError,
   ConfigError,

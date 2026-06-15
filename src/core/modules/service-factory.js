@@ -8,15 +8,41 @@ const { RecallEngine } = require('./query/recall-engine');
 const { MemoryService } = require('./memory/memory-service');
 const { IngestionService } = require('./ingestion/ingestion-service');
 const { QueryService } = require('./query/query-service');
+const { AccessControlledStore } = require('./security/access-controlled-store');
+
+/**
+ * Wrap a store adapter with RBAC when enabled
+ * @param {Object} adapters
+ * @param {Object} config
+ * @param {string} [principal]
+ * @returns {Object}
+ */
+function wrapStoreAdapter(adapters, config, principal = null) {
+  const rbac = config.docket?.memory?.rbac;
+  if (!rbac?.enabled) {
+    return adapters.store;
+  }
+
+  const wrapper = new AccessControlledStore(adapters.store, {
+    defaultPolicy: rbac.defaultPolicy,
+    policies: rbac.policies
+  });
+
+  return principal ? wrapper.forPrincipal(principal) : wrapper;
+}
 
 /**
  * Create all core services from initialized adapters and config
  * @param {Object} adapters — { llm, embedder, store, blob, queue }
  * @param {Object} config — loaded Docket config
+ * @param {Object} [options]
+ * @param {string} [options.principal] — requesting principal for RBAC filtering
  * @returns {Object} — { ingestion, query, memory, sectorClassifier, temporalQuery, decayEngine, recallEngine }
  */
-function createCoreServices(adapters, config) {
+function createCoreServices(adapters, config, options = {}) {
   const memoryConfig = config.docket.memory || {};
+  const principal = options.principal || null;
+  const storeAdapter = wrapStoreAdapter(adapters, config, principal);
 
   const sectorClassifier = new SectorClassifier({
     llmAdapter: adapters.llm,
@@ -24,30 +50,30 @@ function createCoreServices(adapters, config) {
   });
 
   const temporalQuery = new TemporalQuery({
-    storeAdapter: adapters.store,
+    storeAdapter,
     config: memoryConfig.temporal || {}
   });
 
   const decayEngine = new DecayEngine({
-    storeAdapter: adapters.store,
+    storeAdapter,
     config: memoryConfig.decay || {}
   });
 
   const recallEngine = new RecallEngine({
-    storeAdapter: adapters.store,
+    storeAdapter,
     temporalQuery,
     config: {}
   });
 
   const memoryService = new MemoryService({
-    storeAdapter: adapters.store,
+    storeAdapter,
     blobAdapter: adapters.blob,
     decayEngine,
     config: memoryConfig
   });
 
   const ingestionService = new IngestionService({
-    storeAdapter: adapters.store,
+    storeAdapter,
     blobAdapter: adapters.blob,
     embedderAdapter: adapters.embedder,
     llmAdapter: adapters.llm,
@@ -58,7 +84,7 @@ function createCoreServices(adapters, config) {
   });
 
   const queryService = new QueryService({
-    storeAdapter: adapters.store,
+    storeAdapter,
     embedderAdapter: adapters.embedder,
     llmAdapter: adapters.llm,
     recallEngine,
@@ -76,4 +102,4 @@ function createCoreServices(adapters, config) {
   };
 }
 
-module.exports = { createCoreServices };
+module.exports = { createCoreServices, wrapStoreAdapter };

@@ -286,6 +286,53 @@ describe('Data Plane', () => {
     });
   });
 
+  describe('RBAC integration', () => {
+    function createRbacConfig(overrides = {}) {
+      return {
+        docket: {
+          memory: {
+            rbac: {
+              enabled: true,
+              authStrategy: 'header',
+              principalHeader: 'X-Principal',
+              defaultPolicy: 'owner-only',
+              ...overrides
+            }
+          }
+        }
+      };
+    }
+
+    it('returns 401 when principal is required but missing', async () => {
+      const app = buildDataPlane({
+        logger: false,
+        config: createRbacConfig(),
+        adapters: { store: { health: jest.fn().mockResolvedValue({ ok: true }) } },
+        services: createServices()
+      });
+      await app.ready();
+
+      await request(app.server).get('/health').expect(401);
+
+      await app.close();
+    });
+
+    it('allows request when principal is provided', async () => {
+      const app = buildDataPlane({
+        logger: false,
+        config: createRbacConfig(),
+        adapters: { store: { health: jest.fn().mockResolvedValue({ ok: true }) } },
+        services: createServices()
+      });
+      await app.ready();
+
+      const res = await request(app.server).get('/health').set('X-Principal', 'user:alice').expect(200);
+      expect(res.body.status).toBe('ok');
+
+      await app.close();
+    });
+  });
+
   describe('startDataPlane', () => {
     it('starts server on default port', async () => {
       const app = await startDataPlane({ logger: false, port: 0, services: createServices() });

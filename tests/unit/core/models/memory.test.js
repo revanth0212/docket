@@ -82,10 +82,15 @@ describe('CreateMemorySchema', () => {
       rawRef: 'blob:1',
       contentType: 'text/plain',
       sector: 'episodic',
-      salience: 0.8
+      salience: 0.8,
+      owner: 'user:alice',
+      readers: ['user:bob'],
+      writers: ['user:carol']
     });
     expect(result.success).toBe(true);
     expect(result.data.sector).toBe('episodic');
+    expect(result.data.owner).toBe('user:alice');
+    expect(result.data.readers).toEqual(['user:bob']);
   });
 
   it('strips id in create input', () => {

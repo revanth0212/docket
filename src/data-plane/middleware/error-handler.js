@@ -1,7 +1,7 @@
 // src/data-plane/middleware/error-handler.js
 // Centralized error handling for data plane routes
 
-const { DocketError, ValidationError, NotFoundError, QueryError, IngestionError } = require('../../core/errors');
+const { DocketError, ValidationError, NotFoundError, ForbiddenError, QueryError, IngestionError } = require('../../core/errors');
 
 /**
  * Fastify error handler
@@ -21,6 +21,14 @@ function errorHandler(err, _request, reply) {
   if (err instanceof NotFoundError || err.name === 'NotFoundError') {
     reply.status(404).send({
       error: 'not_found',
+      message: err.message
+    });
+    return;
+  }
+
+  if (err instanceof ForbiddenError || err.name === 'ForbiddenError') {
+    reply.status(403).send({
+      error: 'forbidden',
       message: err.message
     });
     return;

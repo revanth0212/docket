@@ -18,7 +18,8 @@ function buildUnifiedApp(options = {}) {
   // Register data plane routes at root
   app.register(registerDataPlaneRoutes, {
     adapters: options.adapters,
-    services: options.services
+    services: options.services,
+    config: options.config
   });
 
   // Register control plane routes (already prefixed with /admin)

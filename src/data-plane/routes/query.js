@@ -10,9 +10,11 @@ const { QueryRequestSchema, validate } = require('../middleware/request-validato
  */
 async function registerQueryRoute(app, options = {}) {
   const queryService = options.queryService;
+  const getQueryService = options.getQueryService || (() => queryService);
 
   app.post('/query', { preHandler: validate(QueryRequestSchema) }, async (request) => {
-    return queryService.query({
+    const service = getQueryService(request);
+    return service.query({
       question: request.body.question,
       topK: request.body.topK,
       sectors: request.body.sectors,
