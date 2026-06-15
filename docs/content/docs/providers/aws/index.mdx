@@ -35,6 +35,14 @@ User → AWS Region → Bedrock (LLM/Embedder)
 | S3 | 5 GB storage, 20,000 GET, 2,000 PUT |
 | SQS | 1M requests/month |
 
+## Serverless deployment
+
+Deploy Docket as an AWS Lambda function using the handler at
+`src/platform/serverless/aws-lambda/handler.js`. It supports API Gateway v2
+(HTTP API) and reuses the Fastify instance across invocations for low
+latency. See [Hosting](/docs/users/hosting#aws-lambda) for packaging
+instructions.
+
 ## Next Steps
 
 - [Onboarding](/docs/providers/aws/onboarding) — IAM, resources, config, deploy

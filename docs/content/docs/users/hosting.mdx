@@ -5,6 +5,8 @@ description: Run Docket standalone, in Docker, or on serverless platforms.
 
 # Hosting
 
+Docket can run as a standalone Node.js process, in Docker, or on serverless platforms.
+
 ## Standalone
 
 Run directly on any machine with Node.js 20+:
@@ -12,6 +14,20 @@ Run directly on any machine with Node.js 20+:
 ```bash
 npm install
 npm start
+```
+
+This uses the unified platform (data + control planes in one process).
+
+For production, use the standalone bin directly:
+
+```bash
+node src/platform/standalone/bin.js
+```
+
+`PORT` and `HOST` environment variables are honored:
+
+```bash
+PORT=8080 HOST=0.0.0.0 node src/platform/standalone/bin.js
 ```
 
 Use `pm2` or `systemd` for production:
@@ -22,29 +38,76 @@ pm2 start src/platform/standalone/bin.js --name docket
 
 ## Docker
 
+Build and run Docket + Ollama together:
+
 ```bash
 docker-compose -f docker/docker-compose.yml up -d
 ```
 
-This starts Docket + Ollama together. No local Ollama needed.
+This starts:
+
+- `docket` on port `3000`
+- `ollama` on port `11434`
+
+The compose file overrides the Ollama URL so Docket talks to the Docker service
+instead of `localhost`.
+
+For a custom image:
+
+```bash
+docker build -f docker/Dockerfile.standalone -t docket .
+docker run -p 3000:3000 -v ./config:/app/config:ro docket
+```
 
 ## AWS Lambda
 
-Deploy the serverless handler:
+Use the handler at `src/platform/serverless/aws-lambda/handler.js`. It supports
+API Gateway v2 (HTTP API) events.
 
-```bash
-cd src/platform/serverless/aws-lambda
-npm run package
+Example `index.js` for Lambda:
+
+```js
+const { handler } = require('./src/platform/serverless/aws-lambda/handler');
+exports.handler = handler;
 ```
 
-Upload the zip to Lambda. Set environment variables for adapter configs.
+Package and deploy:
+
+```bash
+zip -r docket-lambda.zip src config package*.json index.js
+aws lambda update-function-code --function-name docket --zip-file fileb://docket-lambda.zip
+```
+
+Set environment variables for adapter configs:
+
+```bash
+DOCKET_ADAPTERS_LLM_DEFAULT=openai
+DOCKET_ADAPTERS_LLM_PROVIDERS_OPENAI_CONFIG_APIKEY=...
+DOCKET_ADAPTERS_STORE_DEFAULT=dynamodb
+```
+
+The handler bootstraps adapters once per Lambda execution context and reuses
+the Fastify instance across invocations for low cold-start latency.
 
 ## Cloudflare Workers
 
+Use the handler at `src/platform/serverless/cloudflare-workers/handler.js`.
+
+Example `worker.js`:
+
+```js
+import { handleFetch } from './src/platform/serverless/cloudflare-workers/handler';
+export default { fetch: handleFetch };
+```
+
+Deploy with Wrangler:
+
 ```bash
-cd src/platform/serverless/cloudflare-workers
 npx wrangler deploy
 ```
+
+Cloudflare Workers require Cloudflare-native adapters (D1, R2, Workers AI,
+Queues). Configure them in `wrangler.toml` or via `DOCKET_*` secrets.
 
 ## Environment-specific config
 
@@ -55,4 +118,5 @@ changing YAML files:
 DOCKET_ADAPTERS_STORE_DEFAULT=postgres
 DOCKET_ADAPTERS_STORE_PROVIDERS_POSTGRES_CONFIG_CONNECTIONSTRING="postgres://..."
 DOCKET_MEMORY_MODE=rich
+DOCKET_MEMORY_RBAC_ENABLED=true
 ```

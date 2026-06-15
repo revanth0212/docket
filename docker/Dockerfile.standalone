@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+
+# Dockerfile.standalone
+# Production image for Docket standalone platform.
+# Uses the unified data + control plane in a single process.
+
+FROM node:20-alpine AS base
+
+# Install build dependencies for native modules (sqlite, etc.)
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+# Copy dependency manifests first for better layer caching
+COPY package*.json ./
+COPY src/adapters src/adapters
+COPY docs/package*.json docs/
+
+# Install production dependencies
+RUN npm ci --omit=dev --workspace-root \
+  && npm ci --omit=dev -w docs
+
+# Copy application source
+COPY src ./src
+COPY config ./config
+COPY bin ./bin
+COPY LICENSE ./
+COPY README.md ./
+
+# Create data directory for default filesystem/sqlite storage
+RUN mkdir -p /app/data
+
+ENV NODE_ENV=production
+ENV DOCKET_HOST=0.0.0.0
+ENV DOCKET_PORT=3000
+
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://localhost:3000/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))" || exit 1
+
+CMD ["node", "src/platform/standalone/bin.js"]

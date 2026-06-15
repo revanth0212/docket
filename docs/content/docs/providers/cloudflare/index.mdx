@@ -35,6 +35,14 @@ User → Cloudflare Edge → Workers AI (LLM/Embedder)
 | R2 | 10M Class A ops/month, 1M Class B ops/month |
 | Queues | 1M operations/month |
 
+## Serverless deployment
+
+Deploy Docket to Cloudflare Workers using the handler at
+`src/platform/serverless/cloudflare-workers/handler.js`. It runs on the
+Cloudflare edge and pairs with D1, R2, Workers AI, and Queues. See
+[Hosting](/docs/users/hosting#cloudflare-workers) for deployment
+instructions.
+
 ## Next Steps
 
 - [Onboarding](/docs/providers/cloudflare/onboarding) — Create accounts, get API tokens, deploy

@@ -1,0 +1,43 @@
+# docker/docker-compose.yml
+# Local production-like stack: Ollama + Docket standalone
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: docket-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  docket:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.standalone
+    container_name: docket
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DOCKET_HOST=0.0.0.0
+      - DOCKET_PORT=3000
+      # Override Ollama endpoint to use the Docker service name
+      - DOCKET_ADAPTERS_LLM_PROVIDERS_OLLAMA_CONFIG_BASEURL=http://ollama:11434
+      - DOCKET_ADAPTERS_EMBEDDER_PROVIDERS_OLLAMA_CONFIG_BASEURL=http://ollama:11434
+    volumes:
+      - docket-data:/app/data
+      - ../config:/app/config:ro
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  ollama:
+  docket-data:
