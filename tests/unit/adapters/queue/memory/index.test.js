@@ -2,6 +2,18 @@
 
 const { InMemoryQueueAdapter } = require('../../../../../src/adapters/queue/memory');
 
+async function waitFor(predicate, timeout = 1000) {
+  const start = Date.now();
+  let value = await predicate();
+  while (!value) {
+    if (Date.now() - start > timeout) {
+      throw new Error('Timeout waiting for condition');
+    }
+    await new Promise(r => setImmediate(r));
+    value = await predicate();
+  }
+}
+
 describe('InMemoryQueueAdapter', () => {
   let adapter;
 
@@ -85,7 +97,10 @@ describe('InMemoryQueueAdapter', () => {
     const job = await adapter.enqueue('ingest', { file: 'x.pdf' });
 
     await adapter.start();
-    await new Promise(r => setImmediate(r));
+    await waitFor(async () => {
+      const j = await adapter.getJob(job.id);
+      return j.status === 'completed';
+    });
     await adapter.stop();
 
     expect(handler).toHaveBeenCalledWith({ file: 'x.pdf' }, expect.objectContaining({ id: job.id }));
@@ -99,7 +114,10 @@ describe('InMemoryQueueAdapter', () => {
     const job = await adapter.enqueue('ingest', {});
 
     await adapter.start();
-    await new Promise(r => setImmediate(r));
+    await waitFor(async () => {
+      const j = await adapter.getJob(job.id);
+      return j.status === 'failed';
+    });
     await adapter.stop();
 
     const failed = await adapter.getJob(job.id);
@@ -116,12 +134,18 @@ describe('InMemoryQueueAdapter', () => {
     const job2 = await a.enqueue('ingest', {});
     await a.start();
 
-    await new Promise(r => setImmediate(r));
-    expect(a.jobs.get(job1.id).status).toBe('processing');
-    expect(a.jobs.get(job2.id).status).toBe('pending');
+    await waitFor(async () => {
+      const j1 = await a.getJob(job1.id);
+      const j2 = await a.getJob(job2.id);
+      return j1.status === 'processing' && j2.status === 'pending';
+    });
 
     resolveFirst();
-    await new Promise(r => setImmediate(r));
+    await waitFor(async () => {
+      const j1 = await a.getJob(job1.id);
+      const j2 = await a.getJob(job2.id);
+      return j1.status === 'completed' && j2.status === 'processing';
+    });
     await a.stop();
   });
 
