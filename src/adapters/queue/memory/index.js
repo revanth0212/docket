@@ -132,7 +132,7 @@ class InMemoryQueueAdapter extends QueueAdapter {
     }
 
     for (const [type] of this.workers) {
-      const job = this.jobs.values()
+      const job = Array.from(this.jobs.values())
         .find(j => j.status === 'pending' && j.type === type);
 
       if (job) {
