@@ -21,12 +21,24 @@ curl -X POST http://localhost:3000/ingest \
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `file` | File | Yes | The file to ingest |
+| `file` | File | Yes* | The file to ingest (multipart only) |
+| `text` | string | Yes* | Raw text to ingest (JSON only) |
+| `contentType` | string | Yes | MIME type of the content |
 | `async` | boolean | No | `true` queues the job, `false` waits for completion |
-| `access` | string | No | Access policy: `owner-only`, `public`, or a named policy |
 | `metadata` | JSON | No | Arbitrary key-value metadata |
+| `sectorHint` | string | No | Force sector: `episodic`, `semantic`, `procedural`, `emotional`, `reflective` |
 
-## Supported content types
+*Either `file` (multipart) or `text` (JSON) is required.
+
+## JSON ingestion
+
+```bash
+curl -X POST http://localhost:3000/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Rust uses ownership instead of GC", "contentType": "text/plain"}'
+```
+
+## Multipart file upload
 
 - Images: `image/jpeg`, `image/png`, `image/webp`
 - Text: `text/plain`, `text/markdown`
@@ -59,13 +71,16 @@ curl http://localhost:3000/jobs/job_xyz789
 
 ## What happens during ingestion
 
-1. **Validate** — Check MIME type, size limits, malware scan (future)
-2. **Store blob** — Save raw file to `BlobAdapter`
-3. **Extract text** — Run OCR, PDF text extraction, or Whisper transcription
+1. **Validate** — Check MIME type and size limits
+2. **Store blob** — Save raw file to `BlobAdapter` (multipart only)
+3. **Extract text** — Plain-text extraction (OCR/PDF/audio deferred)
 4. **Classify sector** (rich mode only) — LLM decides: episodic, semantic, procedural, emotional, reflective
-5. **Generate embedding** — Send extracted text to `EmbedderAdapter`
+5. **Generate embedding** — Send extracted text or summary to `EmbedderAdapter`
 6. **Generate summary** — LLM produces a short summary
 7. **Store memory** — Save record to `StoreAdapter` with metadata, access policy, and relations
+
+When RBAC is enabled, the current principal becomes the memory owner unless
+`owner` or `accessPolicy` is provided explicitly.
 
 ## Ingestion jobs
 

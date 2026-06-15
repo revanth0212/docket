@@ -40,17 +40,12 @@ curl -X POST http://localhost:3000/query \
 ```json
 {
   "question": "What did I learn about Rust?",
-  "filters": {
-    "sector": "semantic",
-    "contentType": "text/plain"
-  },
+  "sectors": ["semantic"],
   "temporal": {
     "atDate": "2026-04-01"
   },
-  "options": {
-    "topK": 10,
-    "threshold": 0.7
-  }
+  "topK": 10,
+  "includeTrace": false
 }
 ```
 
@@ -58,10 +53,10 @@ curl -X POST http://localhost:3000/query \
 
 | Filter | Description |
 |--------|-------------|
-| `sector` | Filter by memory sector |
-| `contentType` | Filter by original file type |
-| `dateFrom` / `dateTo` | Filter by ingestion date |
-| `metadata` | Key-value metadata match |
+| `sectors` | Filter by memory sectors (array) |
+| `topK` | Maximum number of sources to return |
+| `temporal.atDate` | Point-in-time query (rich mode) |
+| `includeTrace` | Include recall step trace in response |
 
 ## Temporal queries (rich mode)
 

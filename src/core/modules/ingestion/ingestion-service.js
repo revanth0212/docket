@@ -135,13 +135,13 @@ class IngestionService {
         contentType,
         extractedText,
         metadata: metadata || {},
-        sector,
         salience: 1.0
       };
 
       if (rawRef) memoryData.rawRef = rawRef;
       if (summary) memoryData.summary = summary;
       if (embedding) memoryData.embedding = embedding;
+      if (sector) memoryData.sector = sector;
 
       const memory = await this.memoryService.create(memoryData);
 

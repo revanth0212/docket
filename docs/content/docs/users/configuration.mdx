@@ -63,6 +63,27 @@ memory:
 
 See [Memory Modes](/docs/users/memory-modes) for the full rich-mode config.
 
+### RBAC
+
+```yaml
+memory:
+  rbac:
+    enabled: false
+    authStrategy: "header"   # header | jwt | apiKey
+    principalHeader: "X-Principal"
+    defaultPolicy: "owner-only"
+    apiKeys:
+      "dk_abc123": "user:alice"
+    policies:
+      team:
+        readers: ["user:alice", "user:bob"]
+        writers: ["user:alice"]
+```
+
+When enabled, every request to the data plane must identify a principal.
+Memories created without an explicit owner are assigned to the current principal.
+See [RBAC](/docs/users/rbac) for details.
+
 ### Adapters
 
 Each adapter category has a `default` and a map of `providers`:

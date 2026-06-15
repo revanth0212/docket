@@ -1,0 +1,127 @@
+---
+title: RBAC
+ description: Resource-based access control for memories.
+---
+
+# RBAC
+
+Docket uses resource-based access control. Each memory carries its own
+authorization rules: an owner, a list of readers, a list of writers, and an
+access policy.
+
+## Enabling RBAC
+
+Set `docket.memory.rbac.enabled: true` in `config/config.yaml`:
+
+```yaml
+memory:
+  rbac:
+    enabled: true
+    authStrategy: "header"      # header | jwt | apiKey
+    principalHeader: "X-Principal"
+    defaultPolicy: "owner-only"
+```
+
+Once enabled, every data-plane request must identify a principal or it will
+receive a `401 Unauthorized` response.
+
+## Authentication strategies
+
+### Header (default)
+
+Send the principal in a header:
+
+```bash
+curl -H "X-Principal: user:alice" http://localhost:3000/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What did I do last week?"}'
+```
+
+### JWT
+
+```yaml
+memory:
+  rbac:
+    authStrategy: "jwt"
+    jwtSecret: "${DOCKET_JWT_SECRET}"
+```
+
+Send a Bearer token signed with HS256. The `sub` claim (or `principal` claim)
+becomes the principal.
+
+```bash
+curl -H "Authorization: Bearer <token>" ...
+```
+
+### API key
+
+```yaml
+memory:
+  rbac:
+    authStrategy: "apiKey"
+    apiKeys:
+      "dk_abc123": "user:alice"
+```
+
+```bash
+curl -H "X-Api-Key: dk_abc123" ...
+```
+
+## Memory access rules
+
+A memory has these fields:
+
+```json
+{
+  "owner": "user:alice",
+  "readers": ["user:bob"],
+  "writers": ["user:carol"],
+  "accessPolicy": "owner-only"
+}
+```
+
+Rules by policy:
+
+| Policy | Read | Update | Delete |
+|--------|------|--------|--------|
+| `owner-only` | owner | owner | owner |
+| `public` | anyone | owner + writers | owner |
+| any other value | owner + readers | owner + writers | owner |
+
+If no owner is provided at creation time, the current principal becomes the
+owner.
+
+## Named policies
+
+Define reusable policies in config:
+
+```yaml
+memory:
+  rbac:
+    policies:
+      team:
+        readers: ["user:alice", "user:bob"]
+        writers: ["user:alice"]
+```
+
+Reference them on a memory:
+
+```json
+{
+  "accessPolicy": "team"
+}
+```
+
+Named policies are evaluated after the built-in policies and only grant access
+to principals listed in the policy.
+
+## Query filtering
+
+When RBAC is enabled, `GET /memories/:id`, `POST /query`, and `/memories/:id/relations`
+only return memories the principal is allowed to read. Writes and deletes are
+rejected with `403 Forbidden` if the principal lacks permission.
+
+## Control plane
+
+RBAC only applies to the data plane. The control plane (`/admin/*`) is intended
+for operators and should be secured at the network or proxy level.

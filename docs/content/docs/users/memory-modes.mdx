@@ -73,25 +73,39 @@ Use temporal queries to ask "what was true on X date?"
 
 ### RBAC
 
-Every memory has an access policy:
+Every memory has an access policy and ownership:
 
 ```json
 {
-  "access": {
-    "owner": "user:alice",
-    "readers": ["user:bob", "group:family"],
-    "writers": ["user:alice"]
-  }
+  "accessPolicy": "owner-only",
+  "owner": "user:alice",
+  "readers": ["user:bob", "group:family"],
+  "writers": ["user:alice"]
 }
 ```
 
-Or reference a named policy:
+Built-in policies:
+
+| Policy | Read | Write | Delete |
+|--------|------|-------|--------|
+| `owner-only` | owner only | owner only | owner only |
+| `public` | anyone | owner/writers only | owner only |
+| any other value | owner + readers | owner + writers | owner only |
+
+Or reference a named policy defined in config:
+
+```yaml
+memory:
+  rbac:
+    policies:
+      team:
+        readers: ["user:alice", "user:bob"]
+        writers: ["user:alice"]
+```
 
 ```json
 {
-  "access": {
-    "policy": "team"
-  }
+  "accessPolicy": "team"
 }
 ```
 

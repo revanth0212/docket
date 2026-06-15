@@ -13,7 +13,15 @@ async function registerIngestRoute(app, options = {}) {
   const ingestionService = options.ingestionService;
   const getIngestionService = options.getIngestionService || (() => ingestionService);
 
-  app.post('/ingest', { preHandler: validate(IngestRequestSchema) }, async (request, reply) => {
+  const validateJson = validate(IngestRequestSchema);
+
+  app.post('/ingest', {
+    preHandler: async (request, reply) => {
+      if (!request.isMultipart()) {
+        await validateJson(request, reply);
+      }
+    }
+  }, async (request, reply) => {
     const service = getIngestionService(request);
     let result;
 
