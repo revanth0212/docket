@@ -1,0 +1,60 @@
+name: Deploy Docs to Cloudflare Pages
+
+# SECURITY: This workflow is hardened for free-tier/open-source repos.
+#   1. Only the repo owner ('revanth0212') can trigger/deploy.
+#   2. Only runs on the canonical repository, never on forks.
+#   3. Uses a dedicated GitHub Environment ('docs-deploy') so secrets are
+#      scoped and can optionally require manual approval in the UI.
+#   4. Branch restriction is implicit: triggers are limited to 'main'.
+#
+# Required GitHub secrets (stored in the 'docs-deploy' environment):
+#   - CLOUDFLARE_API_TOKEN   : Cloudflare API token with "Cloudflare Pages:Edit" permission
+#   - CLOUDFLARE_ACCOUNT_ID  : Your Cloudflare account ID
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Only the repo owner can trigger this workflow, and never on a fork.
+    if: |
+      github.actor == 'revanth0212' &&
+      github.repository == 'revanth0212/docket'
+    environment: docs-deploy
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build docs
+        run: npm run docs:build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: docs
+          command: pages deploy ./dist --project-name=docket-docs --branch=main

@@ -25,7 +25,8 @@
     "doctor": "node src/scripts/doctor.js",
     "docs:dev": "npm run -w docs dev",
     "docs:build": "npm run -w docs build",
-    "docs:check": "npm run -w docs check"
+    "docs:check": "npm run -w docs check",
+    "docs:deploy": "npm run -w docs deploy"
   },
   "workspaces": [
     "src/adapters/*/*",
