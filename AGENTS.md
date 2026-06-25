@@ -94,6 +94,7 @@ This project is built via **vibe coding** — we describe intent, agents impleme
 - Every new API endpoint must be documented before merge
 - Every new config option must appear in the config schema reference
 - Every new adapter must have a developer guide page
+- **Every new adapter must be registered in `docs/lib/config-builder/registry.ts` with its config schema, env var mappings, valid wiring rules, and install commands. The Config Builder is the canonical interactive reference for adapter availability.**
 - Every user-facing behavior change must update the relevant user guide
 - Breaking changes must include migration notes
 - Docs are checked in CI: `npm run docs:check` must pass

@@ -1,0 +1,27 @@
+---
+title: Config Builder
+description: Visually assemble your Docket system and generate a ready-to-run configuration.
+---
+
+# Config Builder
+
+Use the interactive builder below to drag adapters onto the canvas, configure them,
+and instantly generate your `docket.yaml`, `.env.example`, install commands, and setup steps.
+
+<ConfigBuilder />
+
+## How it works
+
+1. **Choose a Platform** from the left palette and drop it onto the canvas.
+2. **Add adapters** for LLM, Embedder, Store, Blob, and Queue.
+3. **Wire them up** by dragging from the Platform node to each adapter.
+4. **Configure** each adapter in the right panel. Secret fields are optional — leave them blank and the builder will insert placeholder tokens like `<AWS_ACCESS_KEY_ID>`.
+5. **Export** your config, environment variables, install script, or setup steps.
+
+## Existing users
+
+You can also **Import YAML** to load an existing `docket.yaml`, edit the canvas, and export an updated configuration.
+
+## What's supported
+
+The builder includes every adapter that ships with Docket today. When a new adapter is added to the project, it is registered in the builder so the page stays current.
