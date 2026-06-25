@@ -7,7 +7,7 @@ name: Deploy Docs to Cloudflare Pages
 #      scoped and can optionally require manual approval in the UI.
 #   4. Branch restriction is implicit: triggers are limited to 'main'.
 #
-# Required GitHub secrets (stored in the 'docs-deploy' environment):
+# Required GitHub secrets (stored in the 'docket-docs' environment):
 #   - CLOUDFLARE_API_TOKEN   : Cloudflare API token with "Cloudflare Pages:Edit" permission
 #   - CLOUDFLARE_ACCOUNT_ID  : Your Cloudflare account ID
 
@@ -32,7 +32,7 @@ jobs:
     if: |
       github.actor == 'revanth0212' &&
       github.repository == 'revanth0212/docket'
-    environment: docs-deploy
+    environment: docket-docs
     permissions:
       contents: read
       deployments: write
