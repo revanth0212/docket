@@ -1,3 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Docket light theme — amber/orange accent on warm neutral base */
+    --fd-background: 0 0% 100%;
+    --fd-foreground: 24 10% 10%;
+    --fd-muted: 30 10% 96%;
+    --fd-muted-foreground: 25 6% 45%;
+    --fd-popover: 0 0% 100%;
+    --fd-popover-foreground: 24 10% 10%;
+    --fd-card: 30 20% 98%;
+    --fd-card-foreground: 24 10% 10%;
+    --fd-border: 30 10% 88%;
+    --fd-primary: 32 95% 44%;
+    --fd-primary-foreground: 0 0% 100%;
+    --fd-secondary: 30 15% 94%;
+    --fd-secondary-foreground: 24 10% 10%;
+    --fd-accent: 32 95% 52%;
+    --fd-accent-foreground: 0 0% 100%;
+    --fd-ring: 32 95% 44%;
+    --fd-radius: 0.625rem;
+
+    /* Custom Docket marketing variables */
+    --docket-hero-glow: rgba(245, 158, 11, 0.18);
+    --docket-card-gradient-start: rgba(251, 191, 36, 0.08);
+    --docket-card-gradient-end: rgba(249, 115, 22, 0.04);
+  }
+
+  .dark {
+    /* Docket dark theme */
+    --fd-background: 24 10% 6%;
+    --fd-foreground: 30 10% 96%;
+    --fd-muted: 24 8% 12%;
+    --fd-muted-foreground: 30 6% 65%;
+    --fd-popover: 24 10% 8%;
+    --fd-popover-foreground: 30 10% 96%;
+    --fd-card: 24 10% 9%;
+    --fd-card-foreground: 30 10% 96%;
+    --fd-border: 24 8% 18%;
+    --fd-primary: 36 100% 55%;
+    --fd-primary-foreground: 24 10% 6%;
+    --fd-secondary: 24 8% 16%;
+    --fd-secondary-foreground: 30 10% 96%;
+    --fd-accent: 32 95% 44%;
+    --fd-accent-foreground: 0 0% 100%;
+    --fd-ring: 36 100% 55%;
+
+    --docket-hero-glow: rgba(245, 158, 11, 0.12);
+    --docket-card-gradient-start: rgba(251, 191, 36, 0.06);
+    --docket-card-gradient-end: rgba(249, 115, 22, 0.03);
+  }
+
+  * {
+    @apply border-[hsl(var(--fd-border))];
+  }
+
+  body {
+    @apply bg-[hsl(var(--fd-background))] text-[hsl(var(--fd-foreground))];
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-hero-glow {
+    background-image: radial-gradient(
+      ellipse 80% 60% at 50% -20%,
+      var(--docket-hero-glow),
+      transparent
+    );
+  }
+
+  .bg-card-gradient {
+    background: linear-gradient(
+      145deg,
+      var(--docket-card-gradient-start),
+      var(--docket-card-gradient-end)
+    );
+  }
+}
+
+/* Hide React Flow attribution */
 .react-flow__attribution {
   display: none;
 }

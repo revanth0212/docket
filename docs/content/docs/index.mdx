@@ -1,33 +1,77 @@
 ---
-title: Welcome
-description: Docket documentation for users and developers.
+title: Docket Documentation
+description: Learn how to use, deploy, and extend Docket — the open-source second brain core.
 ---
 
 import { Cards, Card } from 'fumadocs-ui/components/card';
 
-# Docket Documentation
+Docket is an **open-source, self-hosted Second Brain as a Service**. It is
+built for applications that need more than simple document search: a memory
+system that models knowledge after human cognition, reasons across time, and
+retrieves the right context when it matters.
 
-Docket is an open-source, self-hosted **Second Brain as a Service**.
-Unlike simple RAG systems, Docket models memory after human cognition:
-memories have **sectors**, **validity over time**, **salience scores**, and
-**adaptive decay**.
+Unlike flat RAG pipelines, Docket stores memories as a structured graph with
+**sectors**, **validity over time**, **salience scores**, and **adaptive
+decay**. You can ask what was true last month, surface the most relevant
+memory for a task, and build agents that remember context across long-lived
+conversations.
 
 ## Choose your path
 
+Whether you are running Docket for your own apps or extending it with custom
+adapters, the documentation is split into two tracks.
+
 <Cards>
-  <Card title="I want to use Docket" href="/docs/users">
-    Ingest data, run queries, and configure your second brain.
+  <Card title="User Guide" href="/docs/users">
+    Install Docket, configure adapters, ingest data, run queries, and manage
+    memory modes and access control.
   </Card>
-  <Card title="I want to extend Docket" href="/docs/developers">
-    Build adapters, connectors, and plugins that work within the system.
+  <Card title="Developer Guide" href="/docs/developers">
+    Understand the architecture, build adapters, extend the plugin system, and
+    contribute to the core.
+  </Card>
+  <Card title="Provider Guides" href="/docs/providers">
+    Deploy Docket locally, on Cloudflare, or on AWS with provider-specific
+    onboarding and maintenance playbooks.
   </Card>
 </Cards>
 
 ## What makes Docket different?
 
-- **Cognitive Memory Model** — Not flat embeddings. Memories are classified
-  into sectors: episodic, semantic, procedural, emotional, reflective.
-- **Temporal Knowledge Graph** — Ask "what was true on March 1st?"
-- **Composite Retrieval** — Vector + graph + salience + recency + temporal
-- **Adaptive Decay** — Per-sector forgetting curves
-- **RBAC Access Control** — Resource-based policies on every memory
+- **Cognitive Memory Model** — Memories are classified into sectors
+  (episodic, semantic, procedural, emotional, reflective) instead of being
+  dumped into a single vector index.
+- **Temporal Knowledge Graph** — Every memory has a lifetime, so you can ask
+  time-bound questions like “what did we decide on March 1st?”
+- **Composite Retrieval** — Combines vector similarity, graph traversal,
+  salience, recency, and temporal filters into one ranked result set.
+- **Adaptive Decay** — Per-sector forgetting curves surface what matters and
+  fade what does not, mimicking real memory.
+- **RBAC Access Control** — Resource-based policies protect every memory,
+  making multi-tenant and multi-agent deployments safer.
+- **Pluggable by Design** — Swap LLMs, embedders, vector stores, blob
+  providers, and queues without rewriting your application.
+
+## Get started in minutes
+
+New to Docket? Start with the quickstart to install the CLI, configure your
+first adapter set, and run your first query.
+
+<Cards>
+  <Card title="Quick Start" href="/docs/users/quickstart">
+    Install Docket and run your first ingestion and query in under ten
+    minutes.
+  </Card>
+  <Card title="Configuration" href="/docs/users/configuration">
+    Learn how adapters, memory modes, and environment variables fit together.
+  </Card>
+  <Card title="Architecture" href="/docs/developers/architecture/system-overview">
+    See how the control plane, data plane, and adapters work together.
+  </Card>
+</Cards>
+
+## Community
+
+Docket is open source and actively developed. If you run into issues, want to
+contribute adapters, or discuss architecture, open an issue or pull request on
+[GitHub](https://github.com/revanth0212/docket).
