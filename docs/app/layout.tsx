@@ -17,7 +17,15 @@ export default function Layout({ children }) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <RootProvider>{children}</RootProvider>
+        <RootProvider
+          theme={{
+            defaultTheme: 'light',
+            enableSystem: false,
+            attribute: 'class'
+          }}
+        >
+          {children}
+        </RootProvider>
       </body>
     </html>
   );
