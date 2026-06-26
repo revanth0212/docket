@@ -85,10 +85,15 @@
 }
 
 /* Fix: keep the docs sidebar footer (theme toggle) visible without scrolling */
+#nd-sidebar > div {
+  display: grid !important;
+  grid-template-rows: auto 1fr auto;
+  align-content: start;
+}
+
 #nd-sidebar > div > div.overflow-hidden.h-full {
-  flex: 1 1 0%;
-  min-height: 0;
-  height: auto;
+  height: auto !important;
+  min-height: 0 !important;
 }
 
 /* Hide React Flow attribution */
